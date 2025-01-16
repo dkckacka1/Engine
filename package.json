@@ -1,0 +1,7 @@
+{
+  "name": "com.KHWEngine.KHWEngine",
+  "displayName": "KHWEngine",
+  "version": "0.1.0",
+  "description": "김하원 엔진 플러그인",
+  "unity": "2023.1"
+}
