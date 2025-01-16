@@ -4,7 +4,7 @@
   "displayName": "Kimhawon Engine",
   "description": "Kimhawon Engine Project",
   "unity": "2021.1",
-  "deppendencies": {
+  "dependencies": {
     "com.unity.addressables": "2.2.2"
   }
 }
