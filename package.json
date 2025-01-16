@@ -3,5 +3,8 @@
   "version": "0.1.0",
   "displayName": "Kimhawon Engine",
   "description": "Kimhawon Engine Project",
-  "unity": "2021.1"
+  "unity": "2021.1",
+  "deppendencies": {
+    "com.unity.addressables": "2.2.2",
+  }
 }
