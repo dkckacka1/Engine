@@ -1,7 +1,7 @@
 {
-  "name": "com.KHWEngine.KHWEngine",
-  "displayName": "KHWEngine",
+  "name": "com.KimHawon.Engine",
   "version": "0.1.0",
-  "description": "���Ͽ� ���� �÷�����",
-  "unity": "2023.1"
+  "displayName": "Kimhawon Engine",
+  "description": "Kimhawon Engine Project",
+  "unity": "2021.1"
 }
