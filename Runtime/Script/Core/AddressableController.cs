@@ -22,14 +22,14 @@ namespace Engine.Core.Addressable
         public List<GameObject> instanceObjectList;
     }
 
-    public class AddressableManager : SingletonMonoBehaviour<AddressableManager>
+    public class AddressableController
     {
         private Dictionary<string, Dictionary<string, CacheData>> loadedAddressableDic = new();
 
         private const string PermanentTypeName = "Permanent";
         private const string SceneTypeName = "Scene";
 
-        public void Awake()
+        public AddressableController()
         {
             EnumExtension.Foreach<CachingType>((type) =>
             {
