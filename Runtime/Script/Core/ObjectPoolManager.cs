@@ -73,6 +73,5 @@ namespace Engine.Core
                 Debug.LogError($"{nameof(T)} Pool was not created");
             }
         }
-
     }
 }

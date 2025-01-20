@@ -1,19 +1,19 @@
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Engine.Util.Extension;
+using Engine.Util;
 
 namespace Engine.Core.Addressable
 {
     public enum CachingType
     {
-        Permanent,  // ¿µ±¸Àû Áö¼Ó
-        Scene,      // ÇØ´ç¾À¿¡¼­¸¸ Áö¼Ó
-        Custom      // Ä¿½ºÅÒ
+        Permanent,  // ì˜êµ¬ì  ì§€ì†
+        Scene,      // í•´ë‹¹ì”¬ì—ì„œë§Œ ì§€ì†
+        Custom      // ì»¤ìŠ¤í…€
     }
 
     public struct CacheData
@@ -22,14 +22,14 @@ namespace Engine.Core.Addressable
         public List<GameObject> instanceObjectList;
     }
 
-    public class AddressableController
+    public class AddressableManager : SingletonMonoBehaviour<AddressableManager>
     {
         private Dictionary<string, Dictionary<string, CacheData>> loadedAddressableDic = new();
 
         private const string PermanentTypeName = "Permanent";
         private const string SceneTypeName = "Scene";
 
-        private AddressableController()
+        public void Awake()
         {
             EnumExtension.Foreach<CachingType>((type) =>
             {
