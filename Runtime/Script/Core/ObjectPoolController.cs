@@ -12,24 +12,27 @@ namespace Engine.Core
         public System.Action<T> actionOnGet;
         public System.Action<T> actionOnRelease;
         public System.Action<T> actionOnDestroy;
+
+        public ObjectPoolEvent(System.Func<T> createFunc) : this()
+        {
+            this.createFunc = createFunc;
+        }
     }
 
-    public class ObjectPoolManager : SingletonMonoBehaviour<ObjectPoolManager>
+    public class ObjectPoolController
     {
         private Dictionary<string, IObjectPool<Object>> poolDic;
 
-        public override void Initialized()
+        public ObjectPoolController()
         {
-            base.Initialized();
-
             poolDic = new Dictionary<string, IObjectPool<Object>>();
         }
 
-        public void CreatePool<T>(string key, ObjectPoolEvent<Object> poolEvent, int defaultCap = 1, int maxSize = 100) where T : Object
+        public void CreatePool<T>(string key, ObjectPoolEvent<T> poolEvent, int defaultCap = 10, int maxSize = 100) where T : Object
         {
-            var pool = new ObjectPool<Object>(poolEvent.createFunc, poolEvent.actionOnGet, poolEvent.actionOnRelease, poolEvent.actionOnDestroy, true, defaultCap, maxSize); ;
+            var pool = new ObjectPool<T>(poolEvent.createFunc, poolEvent.actionOnGet, poolEvent.actionOnRelease, poolEvent.actionOnDestroy, true, defaultCap, maxSize); ;
 
-            poolDic.TryAdd(key, pool);
+            poolDic.TryAdd(key, (IObjectPool<Object>)pool);
         }
 
         public T Get<T>(string key) where T : Object
@@ -71,6 +74,15 @@ namespace Engine.Core
             else
             {
                 Debug.LogError($"{nameof(T)} Pool was not created");
+            }
+        }
+
+        public void Clear(string key)
+        {
+            if (poolDic.ContainsKey(key))
+            {
+                poolDic[key].Clear();
+                poolDic.Remove(key);
             }
         }
     }
