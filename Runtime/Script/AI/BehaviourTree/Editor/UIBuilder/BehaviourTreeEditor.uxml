@@ -1,12 +1,20 @@
-<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/Engine/Runtime/Script/AI/BehaviourTree/Editor/BehaviourTreeEditor.uss?fileID=7433441132597879392&amp;guid=25a68bd586248634297c581c8cd14142&amp;type=3#BehaviourTreeEditor" />
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Assets/Engine/Runtime/Script/AI/BehaviourTree/Editor/UIBuilder/BehaviourTreeEditor.uss?fileID=7433441132597879392&amp;guid=25a68bd586248634297c581c8cd14142&amp;type=3#BehaviourTreeEditor" />
     <editor:Toolbar>
         <editor:ToolbarMenu text="Assets" />
     </editor:Toolbar>
     <SplitView fixed-pane-initial-dimension="300" style="flex-grow: 1; flex-shrink: initial; flex-direction: column;">
         <engine:VisualElement name="left-panel" style="flex-grow: 1; width: 100px;">
-            <engine:Label text="Inspector&#10;" style="background-color: rgba(32, 32, 32, 0);" />
-            <InspectorView style="flex-grow: 1; opacity: 1;" />
+            <SplitView orientation="Vertical" fixed-pane-initial-dimension="206">
+                <engine:VisualElement name="inspector-container" style="flex-grow: 1;">
+                    <engine:Label text="Inspector&#10;" style="background-color: rgba(32, 32, 32, 0);" />
+                    <InspectorView style="flex-grow: 1; opacity: 1;" />
+                </engine:VisualElement>
+                <engine:VisualElement name="blackboard-container" style="flex-grow: 1;">
+                    <engine:Label text="Blackboard&#10;" style="background-color: rgba(32, 32, 32, 0);" />
+                    <engine:IMGUIContainer name="IMGUIContainer" />
+                </engine:VisualElement>
+            </SplitView>
         </engine:VisualElement>
         <engine:VisualElement name="right-panel" style="flex-grow: 1;">
             <engine:Label text="TreeView" style="background-color: rgba(32, 32, 32, 0);" />

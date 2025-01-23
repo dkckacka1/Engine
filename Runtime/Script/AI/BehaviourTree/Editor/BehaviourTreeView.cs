@@ -25,6 +25,14 @@ namespace Engine.AI.BehaviourTree
 
             var styleSheet = Resources.Load<BehaviourTreeData>("BehaviourTreeData").stypeSheet;
             styleSheets.Add(styleSheet);
+
+            Undo.undoRedoPerformed += OnUndoRedo;
+        }
+
+        private void OnUndoRedo()
+        {
+            PopulateView(tree);
+            AssetDatabase.SaveAssets();
         }
 
         NodeView FindNodeView(Node node)
@@ -101,6 +109,15 @@ namespace Engine.AI.BehaviourTree
                 });
             }
 
+            if(graphViewChange.movedElements != null)
+            {
+                nodes.ForEach((n) =>
+                {
+                    NodeView view = n as NodeView;
+                    view.SortChildren();
+                });
+            }
+
             return graphViewChange;
         }
 
@@ -145,6 +162,15 @@ namespace Engine.AI.BehaviourTree
             NodeView nodeView = new NodeView(node);
             nodeView.OnNodeSelected = OnNodeSelected;
             AddElement(nodeView);
+        }
+
+        public void UpdateNodeState()
+        {
+            nodes.ForEach(n =>
+            {
+                NodeView view = n as NodeView;
+                view.Update();
+            });
         }
     }
 }
