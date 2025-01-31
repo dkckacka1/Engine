@@ -7,11 +7,17 @@ namespace Engine.AI.BehaviourTree
     [CreateAssetMenu()]
     public class BehaviourTree : ScriptableObject
     {
+        [HideInInspector]
         public Node rootNode;
+
         public Node.State treeState = Node.State.Running;
 
+        [HideInInspector]
         public List<Node> nodes = new List<Node>();
 
+        [Space(10)]
+        [Header("Blackboard")]
+        [SerializeReference]
         public Blackboard blackboard = new Blackboard();
 
         public Node.State Update()
@@ -144,6 +150,16 @@ namespace Engine.AI.BehaviourTree
 
         public void Bind()
         {
+            Traverse(rootNode, node =>
+            {
+                node.blackboard = blackboard;
+            });
+        }
+
+        public void SetBlackboard<T>(T blackboard) where T : Blackboard
+        {
+            this.blackboard = blackboard;
+
             Traverse(rootNode, node =>
             {
                 node.blackboard = blackboard;

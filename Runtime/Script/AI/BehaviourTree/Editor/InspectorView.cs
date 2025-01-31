@@ -12,6 +12,25 @@ public partial class InspectorView : VisualElement
 
     }
 
+    internal void UpdateTreeObject(BehaviourTree tree)
+    {
+        Clear();
+
+        UnityEngine.Object.DestroyImmediate(editor);
+
+        if (tree is null) return;
+
+        editor = Editor.CreateEditor(tree);
+        IMGUIContainer container = new IMGUIContainer(() =>
+        {
+            if (editor.target)
+            {
+                editor.OnInspectorGUI();
+            }
+        });
+        Add(container);
+    }
+
     internal void UpdateSelection(NodeView nodeView)
     {
         Clear();

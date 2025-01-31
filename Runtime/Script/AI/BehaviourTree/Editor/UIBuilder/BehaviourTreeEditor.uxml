@@ -6,13 +6,13 @@
     <SplitView fixed-pane-initial-dimension="300" style="flex-grow: 1; flex-shrink: initial; flex-direction: column;">
         <engine:VisualElement name="left-panel" style="flex-grow: 1; width: 100px;">
             <SplitView orientation="Vertical" fixed-pane-initial-dimension="206">
-                <engine:VisualElement name="inspector-container" style="flex-grow: 1;">
-                    <engine:Label text="Inspector&#10;" style="background-color: rgba(32, 32, 32, 0);" />
-                    <InspectorView style="flex-grow: 1; opacity: 1;" />
+                <engine:VisualElement style="flex-grow: 1;">
+                    <engine:Label text="Tree Inspector&#10;" style="background-color: rgba(32, 32, 32, 0);" />
+                    <InspectorView name="tree_inspector_container" style="flex-grow: 1; opacity: 1;" />
                 </engine:VisualElement>
-                <engine:VisualElement name="blackboard-container" style="flex-grow: 1;">
-                    <engine:Label text="Blackboard&#10;" style="background-color: rgba(32, 32, 32, 0);" />
-                    <engine:IMGUIContainer name="IMGUIContainer" />
+                <engine:VisualElement style="flex-grow: 1;">
+                    <engine:Label text="Node Inspector" style="background-color: rgba(32, 32, 32, 0);" />
+                    <InspectorView name="node_inspector_container" style="flex-grow: 1; opacity: 1;" />
                 </engine:VisualElement>
             </SplitView>
         </engine:VisualElement>

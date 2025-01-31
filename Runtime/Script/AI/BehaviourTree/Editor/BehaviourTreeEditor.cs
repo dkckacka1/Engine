@@ -9,11 +9,10 @@ namespace Engine.AI.BehaviourTree
     public class BehaviourTreeEditor : EditorWindow
     {
         BehaviourTreeView treeView;
-        InspectorView inspectorView;
-        IMGUIContainer blackboardView;
+        InspectorView treeInspectorView;
+        InspectorView nodeInspectorView;
 
         SerializedObject treeObject;
-        SerializedProperty blackboardProperty;
 
         [MenuItem("BehaviourTreeEditor/Editor")]
         public static void OpenWindow()
@@ -49,14 +48,10 @@ namespace Engine.AI.BehaviourTree
             root.styleSheets.Add(styleSheet);
 
             treeView = root.Q<BehaviourTreeView>();
-            inspectorView = root.Q<InspectorView>();
-            blackboardView = root.Q<IMGUIContainer>();
-            blackboardView.onGUIHandler = () =>
-            {
-                treeObject.Update();
-                EditorGUILayout.PropertyField(blackboardProperty);
-                treeObject.ApplyModifiedProperties();
-            };
+            treeInspectorView = root.Q<InspectorView>("tree_inspector_container");
+
+            nodeInspectorView = root.Q<InspectorView>("node_inspector_container");
+
             treeView.OnNodeSelected = OnNodeSelectionChanged;
 
             OnSelectionChange();
@@ -103,8 +98,12 @@ namespace Engine.AI.BehaviourTree
                     if (runner)
                     {
                         tree = runner.tree;
+
+                        
                     }
                 }
+
+                treeInspectorView?.UpdateTreeObject(tree);
             }
 
             if (Application.isPlaying)
@@ -120,22 +119,25 @@ namespace Engine.AI.BehaviourTree
                 {
                     treeView.PopulateView(tree);
                 }
+
+                treeInspectorView.UpdateTreeObject(null);
             }
 
-            if(tree != null)
+            if (tree != null)
             {
                 treeObject = new SerializedObject(tree);
-                blackboardProperty = treeObject.FindProperty("blackboard");
             }
         }
 
         void OnNodeSelectionChanged(NodeView node)
         {
-            inspectorView.UpdateSelection(node);
+            nodeInspectorView.UpdateSelection(node);
         }
 
         private void OnInspectorUpdate()
         {
+            if (treeView is null) return;
+
             treeView.UpdateNodeState();
         }
     }

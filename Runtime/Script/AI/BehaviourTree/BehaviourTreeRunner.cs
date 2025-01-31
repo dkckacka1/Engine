@@ -1,20 +1,25 @@
+using System;
 using UnityEngine;
 
 namespace Engine.AI.BehaviourTree
 {
-    public class BehaviourTreeRunner : MonoBehaviour
+    public abstract class BehaviourTreeRunner : MonoBehaviour
     {
         public BehaviourTree tree;
 
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start()
+        protected virtual void Initialized() 
         {
             tree = tree.Clone();
             tree.Bind();
         }
 
+        public void Start()
+        {
+            Initialized();
+        }
+
         // Update is called once per frame
-        void Update()
+        public void Update()
         {
             tree?.Update();
         }

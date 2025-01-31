@@ -15,10 +15,9 @@ namespace Engine.AI.BehaviourTree
         [HideInInspector] public bool started = false;
         [HideInInspector] public string guid;
         [HideInInspector] public Vector2 position;
+        [TextArea] public string description;
         [HideInInspector] public Blackboard blackboard;
 
-        [TextArea] public string description;
-        
 
         public State Update()
         {
@@ -47,5 +46,12 @@ namespace Engine.AI.BehaviourTree
         protected abstract void OnStart();
         protected abstract void OnStop();
         protected abstract State OnUpdate();
+
+        protected bool TryGetBlackboard<T>(out T blackborad) where T : Blackboard
+        {
+            blackborad = blackboard as T;
+
+            return blackborad is not null ? true : false;
+        }
     }
 }

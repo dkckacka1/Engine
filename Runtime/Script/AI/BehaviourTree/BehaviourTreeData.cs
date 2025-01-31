@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 
 namespace Engine.AI.BehaviourTree
 {
-    [CreateAssetMenu(fileName = "BehaviourTreeData", menuName = "Scriptable Objects/BehaviourTreeData")]
+    //[CreateAssetMenu(fileName = "BehaviourTreeData", menuName = "Scriptable Objects/BehaviourTreeData")]
     public class BehaviourTreeData : ScriptableObject
     {
         public VisualTreeAsset treeAsset;

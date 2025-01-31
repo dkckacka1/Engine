@@ -1,9 +1,10 @@
 using UnityEngine;
 
-[System.Serializable]
-public class Blackboard
+namespace Engine.AI.BehaviourTree
 {
-    public Vector3 moveToPosition;
-    public GameObject moveToObject;
+    [System.Serializable]
+    public class Blackboard
+    {
+    }
 
 }
