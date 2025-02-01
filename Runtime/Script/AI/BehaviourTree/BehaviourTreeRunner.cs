@@ -17,11 +17,5 @@ namespace Engine.AI.BehaviourTree
         {
             Initialized();
         }
-
-        // Update is called once per frame
-        public void Update()
-        {
-            tree?.Update();
-        }
     }
 }
