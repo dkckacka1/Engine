@@ -12,7 +12,7 @@ namespace Engine.AI.BehaviourTree
         InspectorView treeInspectorView;
         InspectorView nodeInspectorView;
 
-        SerializedObject treeObject;
+        BehaviourTree currentTree;
 
         [MenuItem("BehaviourTreeEditor/Editor")]
         public static void OpenWindow()
@@ -98,8 +98,7 @@ namespace Engine.AI.BehaviourTree
                     if (runner)
                     {
                         tree = runner.tree;
-
-                        
+                        currentTree = tree;
                     }
                 }
 
@@ -111,6 +110,13 @@ namespace Engine.AI.BehaviourTree
                 if (tree && treeView is not null)
                 {
                     treeView.PopulateView(tree);
+
+                    if (currentTree != tree)
+                    {
+                        treeInspectorView?.UpdateTreeObject(null);
+                    }
+
+                    nodeInspectorView?.UpdateSelection(null);
                 }
             }
             else
@@ -120,12 +126,8 @@ namespace Engine.AI.BehaviourTree
                     treeView.PopulateView(tree);
                 }
 
-                treeInspectorView.UpdateTreeObject(null);
-            }
-
-            if (tree != null)
-            {
-                treeObject = new SerializedObject(tree);
+                treeInspectorView?.UpdateTreeObject(null);
+                nodeInspectorView?.UpdateSelection(null);
             }
         }
 
