@@ -128,6 +128,8 @@ namespace Engine.AI.BehaviourTree
 
                 foreach (var type in types)
                 {
+                    if (type.IsAbstract) continue;
+
                     evt.menu.AppendAction($"[{type.BaseType.Name}] {type.Name}", (a) => CreateNode(type));
                 }
             }
@@ -137,6 +139,8 @@ namespace Engine.AI.BehaviourTree
 
                 foreach (var type in types)
                 {
+                    if (type.IsAbstract) continue;
+
                     evt.menu.AppendAction($"[{type.BaseType.Name}] {type.Name}", (a) => CreateNode(type));
                 }
             }
@@ -146,6 +150,8 @@ namespace Engine.AI.BehaviourTree
 
                 foreach (var type in types)
                 {
+                    if (type.IsAbstract) continue;
+
                     evt.menu.AppendAction($"[{type.BaseType.Name}] {type.Name}", (a) => CreateNode(type));
                 }
             }
