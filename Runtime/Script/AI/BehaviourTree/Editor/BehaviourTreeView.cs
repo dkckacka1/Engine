@@ -123,36 +123,41 @@ namespace Engine.AI.BehaviourTree
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
+            string contextPath = "";
+
             {
                 var types = TypeCache.GetTypesDerivedFrom<ActionNode>();
+                contextPath = nameof(ActionNode);
 
                 foreach (var type in types)
                 {
                     if (type.IsAbstract) continue;
 
-                    evt.menu.AppendAction($"[{type.BaseType.Name}] {type.Name}", (a) => CreateNode(type));
+                    evt.menu.AppendAction($"{contextPath}/{type.Name}", (a) => CreateNode(type));
                 }
             }
 
             {
                 var types = TypeCache.GetTypesDerivedFrom<CompositeNode>();
+                contextPath = nameof(CompositeNode);
 
                 foreach (var type in types)
                 {
                     if (type.IsAbstract) continue;
 
-                    evt.menu.AppendAction($"[{type.BaseType.Name}] {type.Name}", (a) => CreateNode(type));
+                    evt.menu.AppendAction($"{contextPath}/{type.Name}", (a) => CreateNode(type));
                 }
             }
 
             {
                 var types = TypeCache.GetTypesDerivedFrom<DecoratorNode>();
+                contextPath = nameof(DecoratorNode);
 
                 foreach (var type in types)
                 {
                     if (type.IsAbstract) continue;
 
-                    evt.menu.AppendAction($"[{type.BaseType.Name}] {type.Name}", (a) => CreateNode(type));
+                    evt.menu.AppendAction($"{contextPath}/{type.Name}", (a) => CreateNode(type));
                 }
             }
         }
