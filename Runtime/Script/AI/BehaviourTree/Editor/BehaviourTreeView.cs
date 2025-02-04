@@ -94,6 +94,9 @@ namespace Engine.AI.BehaviourTree
                         NodeView parentView = edge.output.node as NodeView;
                         NodeView childView = edge.input.node as NodeView;
                         tree.RemoveChild(parentView.node, childView.node);
+
+                        ChangeCompositeNodeName(parentView);
+
                     }
                 });
             }
@@ -106,6 +109,8 @@ namespace Engine.AI.BehaviourTree
                     NodeView childView = edge.input.node as NodeView;
 
                     tree.AddChild(parentView.node, childView.node);
+
+                    ChangeCompositeNodeName(parentView);
                 });
             }
 
@@ -115,16 +120,32 @@ namespace Engine.AI.BehaviourTree
                 {
                     NodeView view = n as NodeView;
                     view.SortChildren();
+
+                    ChangeCompositeNodeName(view);
                 });
             }
 
             return graphViewChange;
         }
 
+        private void ChangeCompositeNodeName(NodeView view)
+        {
+            if (view.node is CompositeNode)
+            {
+                var composite = view.node as CompositeNode;
+                for (int i = 0; i < composite.children.Count; ++i)
+                {
+                    var targetView = GetNodeByGuid(composite.children[i].guid) as NodeView;
+                    targetView.title = $"[{i + 1}] {targetView.node.GetType().Name}";
+                }
+            }
+        }
+
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            string contextPath = "";
+            var createPostition = contentViewContainer.WorldToLocal(evt.mousePosition);
 
+            string contextPath = "";
             {
                 var types = TypeCache.GetTypesDerivedFrom<ActionNode>();
                 contextPath = nameof(ActionNode);
@@ -133,7 +154,7 @@ namespace Engine.AI.BehaviourTree
                 {
                     if (type.IsAbstract) continue;
 
-                    evt.menu.AppendAction($"{contextPath}/{type.Name}", (a) => CreateNode(type));
+                    evt.menu.AppendAction($"{contextPath}/{type.Name}", (a) => CreateNode(type, createPostition));
                 }
             }
 
@@ -145,7 +166,7 @@ namespace Engine.AI.BehaviourTree
                 {
                     if (type.IsAbstract) continue;
 
-                    evt.menu.AppendAction($"{contextPath}/{type.Name}", (a) => CreateNode(type));
+                    evt.menu.AppendAction($"{contextPath}/{type.Name}", (a) => CreateNode(type, createPostition));
                 }
             }
 
@@ -157,7 +178,7 @@ namespace Engine.AI.BehaviourTree
                 {
                     if (type.IsAbstract) continue;
 
-                    evt.menu.AppendAction($"{contextPath}/{type.Name}", (a) => CreateNode(type));
+                    evt.menu.AppendAction($"{contextPath}/{type.Name}", (a) => CreateNode(type, createPostition));
                 }
             }
         }
@@ -168,15 +189,42 @@ namespace Engine.AI.BehaviourTree
             CreateNodeView(node);
         }
 
-        void CreateNodeView(Node node)
+        void CreateNode(Type type, Vector2 position)
+        {
+            Node node = tree.CreateNode(type);
+            var nodeView = CreateNodeView(node);
+
+            var targetRect = nodeView.GetPosition();
+            targetRect.x = position.x;
+            targetRect.y = position.y;
+
+            nodeView.SetPosition(targetRect);
+            nodeView.node.position.x = position.x;
+            nodeView.node.position.y = position.y;
+        }
+
+        NodeView CreateNodeView(Node node)
         {
             NodeView nodeView = new NodeView(node);
             nodeView.OnNodeSelected = OnNodeSelected;
             AddElement(nodeView);
+
+            return nodeView;
         }
 
         public void UpdateNodeState()
         {
+            if (tree.rootNode.state == Node.State.Failure)
+            {
+                nodes.ForEach(n =>
+                {
+                    NodeView view = n as NodeView;
+                    view.ClearNode();
+                });
+
+                return;
+            }
+
             nodes.ForEach(n =>
             {
                 NodeView view = n as NodeView;

@@ -109,7 +109,7 @@ namespace Engine.AI.BehaviourTree
             {
                 if (tree && treeView is not null)
                 {
-                    treeView.PopulateView(tree);
+                    treeView?.PopulateView(tree);
 
                     if (currentTree != tree)
                     {
@@ -123,7 +123,7 @@ namespace Engine.AI.BehaviourTree
             {
                 if (tree && AssetDatabase.CanOpenAssetInEditor(tree.GetInstanceID()))
                 {
-                    treeView.PopulateView(tree);
+                    treeView?.PopulateView(tree);
                 }
 
                 treeInspectorView?.UpdateTreeObject(null);

@@ -127,6 +127,7 @@ namespace Engine.AI.BehaviourTree
         public void SortChildren()
         {
             CompositeNode composite = node as CompositeNode;
+
             if (composite)
             {
                 composite.children.Sort(SortByHorizontalPosition);
@@ -162,6 +163,13 @@ namespace Engine.AI.BehaviourTree
                         break;
                 }
             }
+        }
+
+        public void ClearNode()
+        {
+            RemoveFromClassList("running");
+            RemoveFromClassList("failure");
+            RemoveFromClassList("success");
         }
     }
 }

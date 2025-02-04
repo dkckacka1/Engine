@@ -30,6 +30,17 @@ namespace Engine.AI.BehaviourTree
             return treeState;
         }
 
+        public void Pause()
+        {
+            rootNode.state = Node.State.Failure;
+            treeState = Node.State.Failure;
+        }
+
+        public void Play()
+        {
+            rootNode.state = Node.State.Running;
+        }
+
         public Node CreateNode(System.Type type)
         {
             Node node = CreateInstance(type) as Node;
