@@ -214,6 +214,8 @@ namespace Engine.AI.BehaviourTree
 
         public void UpdateNodeState()
         {
+            if (tree is null) return;
+
             if (tree.rootNode.state == Node.State.Failure)
             {
                 nodes.ForEach(n =>
@@ -224,12 +226,14 @@ namespace Engine.AI.BehaviourTree
 
                 return;
             }
-
-            nodes.ForEach(n =>
+            else
             {
-                NodeView view = n as NodeView;
-                view.Update();
-            });
+                nodes.ForEach(n =>
+                {
+                    NodeView view = n as NodeView;
+                    view.Update();
+                });
+            }
         }
     }
 }
