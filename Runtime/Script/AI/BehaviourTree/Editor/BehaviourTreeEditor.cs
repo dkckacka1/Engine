@@ -131,9 +131,9 @@ namespace Engine.AI.BehaviourTree
             }
         }
 
-        void OnNodeSelectionChanged(NodeView node)
+        void OnNodeSelectionChanged(NodeView nodeView)
         {
-            nodeInspectorView.UpdateSelection(node);
+            nodeInspectorView.UpdateSelection(nodeView);
         }
 
         private void OnInspectorUpdate()

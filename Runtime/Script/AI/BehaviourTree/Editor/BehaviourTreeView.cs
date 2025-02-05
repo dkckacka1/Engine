@@ -95,8 +95,17 @@ namespace Engine.AI.BehaviourTree
                         NodeView childView = edge.input.node as NodeView;
                         tree.RemoveChild(parentView.node, childView.node);
 
-                        ChangeCompositeNodeName(parentView);
+                        var compositeNode = parentView.node as CompositeNode;
+                        if (compositeNode)
+                        {
+                            for (int i = 0; i < compositeNode.children.Count; i++)
+                            {
+                                Node child = compositeNode.children[i];
+                                SetNodeName(child, $"[{i + 1}] {child.GetType().Name}");
+                            }
+                        }
 
+                        SetNodeName(childView.node, $"{childView.node.GetType().Name}");
                     }
                 });
             }
@@ -110,35 +119,30 @@ namespace Engine.AI.BehaviourTree
 
                     tree.AddChild(parentView.node, childView.node);
 
-                    ChangeCompositeNodeName(parentView);
+                    var compositeNode = parentView.node as CompositeNode;
+                    if (compositeNode)
+                    {
+                        for (int i = 0; i < compositeNode.children.Count; i++)
+                        {
+                            Node child = compositeNode.children[i];
+                            SetNodeName(child, $"[{i + 1}] {child.GetType().Name}");
+                        }
+                    }
                 });
             }
 
-            if(graphViewChange.movedElements != null)
+            if (graphViewChange.movedElements != null)
             {
                 nodes.ForEach((n) =>
                 {
                     NodeView view = n as NodeView;
                     view.SortChildren();
-
-                    ChangeCompositeNodeName(view);
                 });
             }
 
-            return graphViewChange;
-        }
+            SetNodesName();
 
-        private void ChangeCompositeNodeName(NodeView view)
-        {
-            if (view.node is CompositeNode)
-            {
-                var composite = view.node as CompositeNode;
-                for (int i = 0; i < composite.children.Count; ++i)
-                {
-                    var targetView = GetNodeByGuid(composite.children[i].guid) as NodeView;
-                    targetView.title = $"[{i + 1}] {targetView.node.GetType().Name}";
-                }
-            }
+            return graphViewChange;
         }
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
@@ -234,6 +238,33 @@ namespace Engine.AI.BehaviourTree
                     view.Update();
                 });
             }
+        }
+
+        private void SetNodesName()
+        {
+            nodes.ForEach(node =>
+            {
+                NodeView nodeView = node as NodeView;
+
+                if (nodeView.node is CompositeNode)
+                {
+                    var compositeNode = nodeView.node as CompositeNode;
+
+                    for (int i = 0; i < compositeNode.children.Count; i++)
+                    {
+                        Node child = compositeNode.children[i];
+
+                        SetNodeName(child, $"[{i + 1}] {child.GetType().Name}");
+                    }
+                }
+            });
+        }
+
+        private void SetNodeName(Node node, string name)
+        {
+            var nodeView = GetNodeByGuid(node.guid);
+            nodeView.title = name;
+            node.name = name;
         }
     }
 }
