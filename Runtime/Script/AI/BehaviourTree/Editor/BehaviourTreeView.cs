@@ -101,11 +101,11 @@ namespace Engine.AI.BehaviourTree
                             for (int i = 0; i < compositeNode.children.Count; i++)
                             {
                                 Node child = compositeNode.children[i];
-                                SetNodeName(child, $"[{i + 1}] {child.GetType().Name}");
+                                SetNodeName(child, $"[{i + 1}] {child.GetTitleName}");
                             }
                         }
 
-                        SetNodeName(childView.node, $"{childView.node.GetType().Name}");
+                        SetNodeName(childView.node, $"{childView.node.GetTitleName}");
                     }
                 });
             }
@@ -125,7 +125,7 @@ namespace Engine.AI.BehaviourTree
                         for (int i = 0; i < compositeNode.children.Count; i++)
                         {
                             Node child = compositeNode.children[i];
-                            SetNodeName(child, $"[{i + 1}] {child.GetType().Name}");
+                            SetNodeName(child, $"[{i + 1}] {child.GetTitleName}");
                         }
                     }
                 });
@@ -140,7 +140,7 @@ namespace Engine.AI.BehaviourTree
                 });
             }
 
-            SetNodesName();
+            UpdateNodeName();
 
             return graphViewChange;
         }
@@ -240,7 +240,7 @@ namespace Engine.AI.BehaviourTree
             }
         }
 
-        private void SetNodesName()
+        public void UpdateNodeName()
         {
             nodes.ForEach(node =>
             {
@@ -254,7 +254,7 @@ namespace Engine.AI.BehaviourTree
                     {
                         Node child = compositeNode.children[i];
 
-                        SetNodeName(child, $"[{i + 1}] {child.GetType().Name}");
+                        SetNodeName(child, $"[{i + 1}] {child.GetTitleName}");
                     }
                 }
             });

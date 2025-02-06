@@ -142,5 +142,15 @@ namespace Engine.AI.BehaviourTree
 
             treeView.UpdateNodeState();
         }
+
+        public static void UpdateTreeView()
+        {
+            BehaviourTreeEditor editor = GetWindow<BehaviourTreeEditor>();
+
+            if (editor && editor.treeView != null)
+            {
+                editor.treeView.UpdateNodeName();
+            }
+        }
     }
 }

@@ -18,6 +18,7 @@ namespace Engine.AI.BehaviourTree
         [TextArea] public string description;
         [HideInInspector] public Blackboard blackboard;
 
+        public virtual string GetTitleName => this.GetType().Name;
 
         public State Update()
         {
