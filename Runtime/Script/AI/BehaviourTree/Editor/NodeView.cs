@@ -16,6 +16,9 @@ namespace Engine.AI.BehaviourTree
         public Port input;
         public Port output;
 
+        Label subtitleLable;
+        Label descriptionLabel;
+
         public NodeView(Node node) : base(UnityEditor.AssetDatabase.GetAssetPath(Resources.Load<BehaviourTreeData>("BehaviourTreeData").nodeView))
         {
             this.node = node;
@@ -29,9 +32,13 @@ namespace Engine.AI.BehaviourTree
             CreateOutPorts();
             SetupClasses();
 
-            Label descriptionLabel = this.Q<Label>("description");
+            descriptionLabel = this.Q<Label>("description");
             descriptionLabel.bindingPath = "description";
             descriptionLabel.Bind(new SerializedObject(node));
+
+            subtitleLable = this.Q<Label>("subtitle");
+            SetSubTitleName();
+            SetDescription();
         }
 
         private void SetupClasses()
@@ -236,5 +243,44 @@ namespace Engine.AI.BehaviourTree
             return result;
         }
 
+        public void SetSubTitleName()
+        {
+            string subTitleName = node.GetSubTitleName;
+
+            if (string.IsNullOrEmpty(subTitleName))
+            {
+                subtitleLable.parent.style.display = DisplayStyle.None; 
+            }
+            else
+            {
+                subtitleLable.parent.style.display = DisplayStyle.Flex;
+                subtitleLable.text = subTitleName;
+            }
+        }
+
+        public void SetDescription()
+        {
+            descriptionLabel.text = node.GetDescription;
+        }
+
+        public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            base.BuildContextualMenu(evt);
+
+            evt.menu.AppendAction("check", _ =>
+            {
+                Debug.Log(subtitleLable.parent.name);
+            });
+
+            evt.menu.AppendAction("enable", _ =>
+            {
+                subtitleLable.parent.style.display = DisplayStyle.Flex;
+            });
+
+            evt.menu.AppendAction("Disable", _ =>
+            {
+                subtitleLable.parent.style.display = DisplayStyle.None;
+            });
+        }
     }
 }

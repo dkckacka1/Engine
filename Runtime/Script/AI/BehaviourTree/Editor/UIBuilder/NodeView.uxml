@@ -8,12 +8,16 @@
                 <ui:VisualElement name="input" style="border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 0; border-bottom-left-radius: 0; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0);" />
                 <ui:VisualElement name="divider" class="vertical" />
                 <ui:VisualElement name="title">
-                    <ui:Label name="title-label" text="SeqencerNode" class="unity-text-element unity-label" />
+                    <ui:Label name="title-label" text="SeqencerNode" class="unity-text-element unity-label" style="display: flex;" />
                     <ui:VisualElement name="title-button-container">
                         <ui:VisualElement name="collapse-button">
                             <ui:VisualElement name="icon" />
                         </ui:VisualElement>
                     </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="divider" class="vertical" />
+                <ui:VisualElement name="subtitle-container" style="display: flex; background-color: rgba(0, 0, 0, 0);">
+                    <ui:Label name="subtitle" text="Subtitle" class="unity-text-element unity-label" style="-unity-text-align: upper-center; font-size: 12px; display: flex;" />
                 </ui:VisualElement>
                 <ui:VisualElement name="divider" class="vertical" />
                 <ui:Label text="This is a Description" name="description" />

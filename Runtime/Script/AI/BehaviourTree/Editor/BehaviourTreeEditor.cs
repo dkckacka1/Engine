@@ -14,6 +14,8 @@ namespace Engine.AI.BehaviourTree
 
         BehaviourTree currentTree;
 
+        public static BehaviourTreeEditor Instance { get; private set; }
+
         [MenuItem("BehaviourTreeEditor/Editor")]
         public static void OpenWindow()
         {
@@ -61,11 +63,15 @@ namespace Engine.AI.BehaviourTree
         {
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+
+            Instance = this;
         }
 
         private void OnDisable()
         {
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+
+            Instance = null;
         }
 
         private void OnPlayModeStateChanged(PlayModeStateChange obj)
@@ -150,6 +156,21 @@ namespace Engine.AI.BehaviourTree
             if (editor && editor.treeView != null)
             {
                 editor.treeView.UpdateNodeName();
+            }
+        }
+
+        public static void UpdateNodeView(Node node)
+        {
+            if (Instance is null) return;
+            if (Instance.treeView is null) return;
+
+            var treeView = Instance?.treeView;
+            NodeView nodeView = treeView.GetNodeByGuid(node.guid) as NodeView;
+
+            if (nodeView is not null)
+            {
+                nodeView.SetSubTitleName();
+                nodeView.SetDescription();
             }
         }
     }

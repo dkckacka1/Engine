@@ -19,6 +19,13 @@ namespace Engine.AI.BehaviourTree
         [HideInInspector] public Blackboard blackboard;
 
         public virtual string GetTitleName => this.GetType().Name;
+        public virtual string GetSubTitleName => string.Empty;
+        public virtual string GetDescription => string.Empty;
+
+        private void OnValidate()
+        {
+            BehaviourTreeEditor.UpdateNodeView(this);
+        }
 
         public State Update()
         {
