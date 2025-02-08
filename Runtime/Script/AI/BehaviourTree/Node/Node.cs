@@ -22,6 +22,11 @@ namespace Engine.AI.BehaviourTree
         public virtual string GetSubTitleName => string.Empty;
         public virtual string GetDescription => string.Empty;
 
+        public Node()
+        {
+            description = GetDescription;
+        }
+
         private void OnValidate()
         {
             BehaviourTreeEditor.UpdateNodeView(this);
