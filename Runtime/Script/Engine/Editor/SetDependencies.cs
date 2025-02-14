@@ -14,18 +14,21 @@ namespace Engine.EditorUtil
         {
             dependenceData = Resources.Load<DependenceData>("DependenceData");
 
-            foreach (var dependence in dependenceData.gitDataList)
+            if (dependenceData)
             {
-                Debug.Log($"CheckDependence : {dependence.GitName}");
-                bool checkUnitaskInstalled = CheckPackageInstalled(dependence.GitName);
+                foreach (var dependence in dependenceData.gitDataList)
+                {
+                    Debug.Log($"CheckDependence : {dependence.GitName}");
+                    bool checkUnitaskInstalled = CheckPackageInstalled(dependence.GitName);
 
-                if (!checkUnitaskInstalled)
-                {
-                    AddPackage(dependence.GitName, dependence.GitURL);
-                }
-                else
-                {
-                    Debug.Log($"{dependence.GitName} is Loaded!");
+                    if (!checkUnitaskInstalled)
+                    {
+                        AddPackage(dependence.GitName, dependence.GitURL);
+                    }
+                    else
+                    {
+                        Debug.Log($"{dependence.GitName} is Loaded!");
+                    }
                 }
             }
         }
