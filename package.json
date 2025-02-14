@@ -1,8 +1,8 @@
 {
   "name": "com.kimhawon.engine",
-  "version": "0.1.14",
+  "version": "0.1.2",
   "displayName": "Kimhawon Engine",
-  "description": "Kimhawon Engine Project",
+  "description": "Kimhawon Engine Project, UniTask 설치",
   "unity": "2021.1",
   "dependencies": {
     "com.unity.addressables": "2.2.2"
