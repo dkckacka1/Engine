@@ -4,8 +4,6 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using Engine.Util.Extension;
-using Engine.Util;
 
 namespace Engine.Core.Addressable
 {
@@ -16,40 +14,31 @@ namespace Engine.Core.Addressable
         Custom      // 커스텀
     }
 
-    public struct CacheData
+    public class CacheData
     {
+        public string cachingType;
         public UnityEngine.Object originObject;
         public List<GameObject> instanceObjectList;
     }
 
     public class AddressableController
     {
-        private Dictionary<string, Dictionary<string, CacheData>> loadedAddressableDic = new();
+        private Dictionary<string, CacheData> loadedAddressableDic = new();
 
         private const string PermanentTypeName = "Permanent";
         private const string SceneTypeName = "Scene";
 
-        public AddressableController()
-        {
-            EnumExtension.Foreach<CachingType>((type) =>
-            {
-                loadedAddressableDic.TryAdd(GetCachingTypeName(type), new Dictionary<string, CacheData>());
-            });
-        }
 
-        public async Task<T> LoadAssetAsync<T>(string address, CachingType cachingType = CachingType.Scene, Action<AsyncOperationHandle<T>> handle_Complete = null) where T : UnityEngine.Object
+        public async Task<T> LoadAssetAsync<T>(string address, CachingType cachingType = CachingType.Scene, string customTypeName = "Custom",  Action<AsyncOperationHandle<T>> handle_Complete = null) where T : UnityEngine.Object
         {
-            if(loadedAddressableDic.TryGetValue(GetCachingTypeName(cachingType), out var cachingDataDic))
+            if (loadedAddressableDic.TryGetValue(address, out var cacheData))
             {
-                if(cachingDataDic.TryGetValue(address, out var cachingData))
-
-                return cachingData.originObject as T;
+                return cacheData.originObject as T;
             }
 
             AsyncOperationHandle<T> asyncOperHandle = Addressables.LoadAssetAsync<T>(address);
             asyncOperHandle.Completed += handle_Complete;
             await asyncOperHandle.Task;
-
             T result = null;
 
             switch (asyncOperHandle.Status)
@@ -60,11 +49,11 @@ namespace Engine.Core.Addressable
                     {
                         result = asyncOperHandle.Result;
 
-                        CacheData cacheData = new CacheData();
+                        cacheData = new CacheData();
+                        cacheData.cachingType = GetCachingTypeName(cachingType);
                         cacheData.originObject = result;
                         cacheData.instanceObjectList = new();
-
-                        loadedAddressableDic[GetCachingTypeName(cachingType)].Add(address, cacheData);
+                        loadedAddressableDic.TryAdd(address, cacheData);
                     }
                     break;
                 case AsyncOperationStatus.Failed:
@@ -77,20 +66,21 @@ namespace Engine.Core.Addressable
             return result;
         }
 
-        public async Task<T> InstantiateObject<T>(string address, Transform parent = null, Action<AsyncOperationHandle<GameObject>> handle_Complete = null) where T : UnityEngine.Object
+        public async Task<T> InstantiateObject<T>(string address, CachingType cachingType = CachingType.Scene, string customTypeName = "Custom", Action<AsyncOperationHandle<GameObject>> handle_Complete = null) where T : UnityEngine.Object
         {
-            if(loadedAddressableDic.ContainsKey(address) is false)
+            if (loadedAddressableDic.ContainsKey(address) is false)
             {
-                await LoadAssetAsync<T>(address);
+                await LoadAssetAsync<T>(address, cachingType, customTypeName);
             }
 
-            AsyncOperationHandle<GameObject> asyncOperHandle = Addressables.InstantiateAsync(address, parent);
-            asyncOperHandle.Completed += handle_Complete;
-            asyncOperHandle.Completed += (resultObj) =>
-            {
-                resultObj.Result.AddComponent<SelfCleanUp>();
-            };
+            CacheData data = loadedAddressableDic[address];
 
+            AsyncOperationHandle<GameObject> asyncOperHandle = Addressables.InstantiateAsync(address);
+            asyncOperHandle.Completed += handle_Complete;
+            asyncOperHandle.Completed += (_) =>
+            {   
+                data.instanceObjectList.Add(asyncOperHandle.Result);
+            };
             await asyncOperHandle.Task;
 
             switch (asyncOperHandle.Status)
@@ -98,7 +88,7 @@ namespace Engine.Core.Addressable
                 case AsyncOperationStatus.None:
                     break;
                 case AsyncOperationStatus.Succeeded:
-                    break;
+                    return asyncOperHandle.Result.GetComponent<T>();
                 case AsyncOperationStatus.Failed:
                     {
                         Debug.LogError(asyncOperHandle.OperationException.Message);
@@ -106,40 +96,34 @@ namespace Engine.Core.Addressable
                     break;
             }
 
-            return asyncOperHandle.Result.GetComponent<T>();
+            return null;
         }
 
         public void ReleaseAll(CachingType cachingType, string customName = "Custom")
         {
-            foreach(CacheData cacheData in loadedAddressableDic[GetCachingTypeName(cachingType, customName)].Values)
+            string cachingTypeName = GetCachingTypeName(cachingType, customName);
+
+            foreach(var loadedObject in loadedAddressableDic)
             {
-                foreach(var instanceObject in cacheData.instanceObjectList)
+                if(loadedObject.Value.cachingType == cachingTypeName)
+                {
+                    Release(loadedObject.Key);
+                }
+            }
+        }
+
+        public void Release(string address)
+        {
+            if (loadedAddressableDic.TryGetValue(address, out var data))
+            {
+                foreach (var instanceObject in data.instanceObjectList)
                 {
                     Addressables.ReleaseInstance(instanceObject);
                 }
 
-                cacheData.instanceObjectList.Clear();
-                Addressables.Release(cacheData.originObject);
-            }
+                Addressables.Release(data.originObject);
 
-            loadedAddressableDic[GetCachingTypeName(cachingType, customName)].Clear();
-        }
-
-        public void Release(CachingType cachingType, string key ,string customName = "Custom")
-        {
-            if(loadedAddressableDic.TryGetValue(GetCachingTypeName(cachingType, customName), out var dic))
-            {
-                if (dic.TryGetValue(key, out var cacheData))
-                {
-                    foreach(var instanceObject in cacheData.instanceObjectList)
-                    {
-                        Addressables.ReleaseInstance(instanceObject);
-                    }
-
-                    Addressables.Release(cacheData.originObject);
-
-                    dic.Remove(key);
-                }
+                loadedAddressableDic.Remove(address);
             }
         }
 
@@ -161,14 +145,6 @@ namespace Engine.Core.Addressable
             }
 
             return result;
-        }
-
-        private class SelfCleanUp : MonoBehaviour
-        {
-            private void OnDestroy()
-            {
-                Addressables.ReleaseInstance(gameObject);
-            }
         }
     }
 }
