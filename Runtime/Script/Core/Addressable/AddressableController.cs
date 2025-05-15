@@ -88,7 +88,14 @@ namespace Engine.Core.Addressable
                 case AsyncOperationStatus.None:
                     break;
                 case AsyncOperationStatus.Succeeded:
-                    return asyncOperHandle.Result.GetComponent<T>();
+                    {
+                        if (typeof(T) == typeof(GameObject))
+                        {
+                            return asyncOperHandle.Result as T;
+                        }
+
+                        return asyncOperHandle.Result.GetComponent<T>();
+                    }
                 case AsyncOperationStatus.Failed:
                     {
                         Debug.LogError(asyncOperHandle.OperationException.Message);
