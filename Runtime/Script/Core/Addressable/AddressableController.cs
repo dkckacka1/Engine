@@ -29,7 +29,7 @@ namespace Engine.Core.Addressable
         private const string SceneTypeName = "Scene";
 
 
-        public async Task<T> LoadAssetAsync<T>(string address, CachingType cachingType = CachingType.Scene, string customTypeName = "Custom",  Action<AsyncOperationHandle<T>> handle_Complete = null) where T : UnityEngine.Object
+        public async Task<T> LoadAssetAsync<T>(string address, CachingType cachingType = CachingType.Scene, string customTypeName = "Custom", Action<AsyncOperationHandle<T>> handle_Complete = null) where T : UnityEngine.Object
         {
             if (loadedAddressableDic.TryGetValue(address, out var cacheData))
             {
@@ -66,7 +66,13 @@ namespace Engine.Core.Addressable
             return result;
         }
 
-        public async Task<T> InstantiateObject<T>(string address, CachingType cachingType = CachingType.Scene, string customTypeName = "Custom", Action<AsyncOperationHandle<GameObject>> handle_Complete = null) where T : UnityEngine.Object
+        public async Task<T> InstantiateObject<T>(
+            string address,
+            Transform parent = null,
+            CachingType cachingType = CachingType.Scene,
+            string customTypeName = "Custom",
+            Action<AsyncOperationHandle<GameObject>> handle_Complete = null
+            ) where T : UnityEngine.Object
         {
             if (loadedAddressableDic.ContainsKey(address) is false)
             {
@@ -75,10 +81,10 @@ namespace Engine.Core.Addressable
 
             CacheData data = loadedAddressableDic[address];
 
-            AsyncOperationHandle<GameObject> asyncOperHandle = Addressables.InstantiateAsync(address);
+            AsyncOperationHandle<GameObject> asyncOperHandle = (parent == null) ? Addressables.InstantiateAsync(address) : Addressables.InstantiateAsync(address, parent);
             asyncOperHandle.Completed += handle_Complete;
             asyncOperHandle.Completed += (_) =>
-            {   
+            {
                 data.instanceObjectList.Add(asyncOperHandle.Result);
             };
             await asyncOperHandle.Task;
@@ -110,9 +116,9 @@ namespace Engine.Core.Addressable
         {
             string cachingTypeName = GetCachingTypeName(cachingType, customName);
 
-            foreach(var loadedObject in loadedAddressableDic)
+            foreach (var loadedObject in loadedAddressableDic)
             {
-                if(loadedObject.Value.cachingType == cachingTypeName)
+                if (loadedObject.Value.cachingType == cachingTypeName)
                 {
                     Release(loadedObject.Key);
                 }
