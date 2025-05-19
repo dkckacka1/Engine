@@ -41,6 +41,7 @@ namespace Engine.Util
             }
             else
             {
+                Debug.Log($"Removed Object {typeof(T).Name}");
                 Destroy(this.gameObject);
             }
 
