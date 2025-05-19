@@ -5,16 +5,25 @@ using UnityEngine.Events;
 
 namespace Engine.Core.EventBus
 {
-    public class EventBusController<T> : IDisposable where T : System.Enum
+    public class EnumEventBus<T> : IDisposable where T : System.Enum
     {
         private Dictionary<T, UnityEvent> eventDic = new();
+        private T currentype = default;
 
-        private EventBusController()
+        public T CurrentType => currentype;
+
+        public EnumEventBus()
         {
             EnumExtension.Foreach<T>((type) =>
             {
                 eventDic.Add(type, new UnityEvent());
             });
+        }
+
+        public void ChangeEvent(T type)
+        {
+            currentype = type;
+            InvokeEvent(CurrentType);
         }
 
         public void PublishEvent(T eventType, UnityAction action)
@@ -32,9 +41,9 @@ namespace Engine.Core.EventBus
             eventDic[eventType].RemoveAllListeners();
         }
 
-        public void InvokeEvent(T eventType)
+        private void InvokeEvent(T eventType)
         {
-            eventDic[eventType].Invoke();
+            eventDic[eventType]?.Invoke();
         }
 
         public void Dispose()
