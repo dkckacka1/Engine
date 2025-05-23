@@ -4,6 +4,8 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Engine.Util;
+using Cysharp.Threading.Tasks;
 
 namespace Engine.Core.Addressable
 {
@@ -18,52 +20,88 @@ namespace Engine.Core.Addressable
     {
         public string cachingType;
         public UnityEngine.Object originObject;
-        public List<GameObject> instanceObjectList;
     }
 
-    public class AddressableController
+    public class AddressableManager : SingletonMonoBehaviour<AddressableManager>
     {
         private Dictionary<string, CacheData> loadedAddressableDic = new();
+        private HashSet<string> loadingHashSet = new();
 
         private const string PermanentTypeName = "Permanent";
         private const string SceneTypeName = "Scene";
 
+        private bool isLoading = false;
 
-        public async Task<T> LoadAssetAsync<T>(string address, CachingType cachingType = CachingType.Scene, string customTypeName = "Custom", Action<AsyncOperationHandle<T>> handle_Complete = null) where T : UnityEngine.Object
+        public async Task<T> LoadAssetAsync<T>(string address, CachingType cachingType = CachingType.Scene, string customTypeName = "Custom") where T : UnityEngine.Object
         {
+            if (loadingHashSet.Contains(address))
+                // 동시에 여러개의 로드 호출이 있을 경우 대기
+            {
+                await UniTask.WaitUntil(() => loadingHashSet.Contains(address) is false);
+            }
+
             if (loadedAddressableDic.TryGetValue(address, out var cacheData))
             {
                 return cacheData.originObject as T;
             }
 
-            AsyncOperationHandle<T> asyncOperHandle = Addressables.LoadAssetAsync<T>(address);
-            asyncOperHandle.Completed += handle_Complete;
-            await asyncOperHandle.Task;
-            T result = null;
+            loadingHashSet.Add(address);
+            cacheData = new CacheData();
+            cacheData.cachingType = GetCachingTypeName(cachingType);
 
-            switch (asyncOperHandle.Status)
+            if (IsComponentType<T>())
+                // Component 타입
             {
-                case AsyncOperationStatus.None:
-                    break;
-                case AsyncOperationStatus.Succeeded:
-                    {
-                        result = asyncOperHandle.Result;
+                AsyncOperationHandle<GameObject> asyncOperationHandle = Addressables.LoadAssetAsync<GameObject>(address);
+                await asyncOperationHandle.Task;
+                GameObject result = null;
+                switch (asyncOperationHandle.Status)
+                {
+                    case AsyncOperationStatus.None:
+                        break;
+                    case AsyncOperationStatus.Succeeded:
+                        {
+                            result = asyncOperationHandle.Result;
 
-                        cacheData = new CacheData();
-                        cacheData.cachingType = GetCachingTypeName(cachingType);
-                        cacheData.originObject = result;
-                        cacheData.instanceObjectList = new();
-                        loadedAddressableDic.TryAdd(address, cacheData);
-                    }
-                    break;
-                case AsyncOperationStatus.Failed:
-                    {
-                        Debug.LogError(asyncOperHandle.OperationException.Message);
-                    }
-                    break;
+                            loadedAddressableDic.Add(address, cacheData);
+                            loadingHashSet.Remove(address);
+                            return result.GetComponent<T>();
+                        }
+                    case AsyncOperationStatus.Failed:
+                        {
+                            Debug.LogError(asyncOperationHandle.OperationException.Message);
+                        }
+                        break;
+                }
+            }
+            else
+                // Asset 타입
+            {
+                AsyncOperationHandle<T> asyncOperationHandle = Addressables.LoadAssetAsync<T>(address);
+                await asyncOperationHandle.Task;
+                T result = null;
+                switch (asyncOperationHandle.Status)
+                {
+                    case AsyncOperationStatus.None:
+                        break;
+                    case AsyncOperationStatus.Succeeded:
+                        {
+                            result = asyncOperationHandle.Result;
+
+                            cacheData.originObject = result;
+                            loadedAddressableDic.Add(address, cacheData);
+                            loadingHashSet.Remove(address);
+                            return result;
+                        }
+                    case AsyncOperationStatus.Failed:
+                        {
+                            Debug.LogError(asyncOperationHandle.OperationException.Message);
+                        }
+                        break;
+                }
             }
 
-            return result;
+            return null;
         }
 
         public async Task<T> InstantiateObject<T>(
@@ -83,10 +121,6 @@ namespace Engine.Core.Addressable
 
             AsyncOperationHandle<GameObject> asyncOperHandle = (parent == null) ? Addressables.InstantiateAsync(address) : Addressables.InstantiateAsync(address, parent);
             asyncOperHandle.Completed += handle_Complete;
-            asyncOperHandle.Completed += (_) =>
-            {
-                data.instanceObjectList.Add(asyncOperHandle.Result);
-            };
             await asyncOperHandle.Task;
 
             switch (asyncOperHandle.Status)
@@ -129,11 +163,6 @@ namespace Engine.Core.Addressable
         {
             if (loadedAddressableDic.TryGetValue(address, out var data))
             {
-                foreach (var instanceObject in data.instanceObjectList)
-                {
-                    Addressables.ReleaseInstance(instanceObject);
-                }
-
                 Addressables.Release(data.originObject);
 
                 loadedAddressableDic.Remove(address);
@@ -158,6 +187,11 @@ namespace Engine.Core.Addressable
             }
 
             return result;
+        }
+
+        private static bool IsComponentType<T>()
+        {
+            return typeof(Component).IsAssignableFrom(typeof(T));
         }
     }
 }
