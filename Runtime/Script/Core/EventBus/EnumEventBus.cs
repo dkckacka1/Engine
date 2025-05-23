@@ -5,7 +5,7 @@ using UnityEngine.Events;
 
 namespace Engine.Core.EventBus
 {
-    public class EnumEventBus<T> : IDisposable where T : System.Enum
+    public class EnumEventBus<T> : IDisposable where T : Enum
     {
         private Dictionary<T, UnityEvent> eventDic = new();
         private T currentype = default;
