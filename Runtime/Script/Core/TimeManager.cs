@@ -1,7 +1,6 @@
 using Cysharp.Threading.Tasks;
 using Engine.Util;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Events;
 
 namespace Engine.Core.Time
@@ -10,61 +9,61 @@ namespace Engine.Core.Time
     {
         private class TimeValue
         {
-            public float timeFactor = 1f;
-            public UnityEvent<float> FactorChangeEvent = new();
+            public float TimeFactor = 1f;
+            public readonly UnityEvent<float> FactorChangeEvent = new();
 
-            public TimeValue(float timeFactor = DefaultTimeScaleFactor)
+            public TimeValue(float timeFactor = DEFAULT_TIME_SCALE_FACTOR)
             {
-                timeFactor = DefaultTimeScaleFactor;
+                TimeFactor = timeFactor;
             }
 
-            public static implicit operator float(TimeValue timeValue) => timeValue.timeFactor;
+            public static implicit operator float(TimeValue timeValue) => timeValue.TimeFactor;
 
             public static implicit operator UnityEvent<float>(TimeValue timeValue) => timeValue.FactorChangeEvent;
         }
 
-        private Dictionary<string, TimeValue> timeScaleDic = new();
+        private readonly Dictionary<string, TimeValue> _timeScaleDic = new();
 
-        private const string DefaultTimeKey = "Default";
-        private const float DefaultTimeScaleFactor = 1f;
+        private const string DEFAULT_TIME_KEY = "Default";
+        private const float DEFAULT_TIME_SCALE_FACTOR = 1f;
 
-        public float GetTimeScale(string timeKey = DefaultTimeKey)
+        public float GetTimeScale(string timeKey = DEFAULT_TIME_KEY)
         {
-            if (timeScaleDic.ContainsKey(timeKey) is false)
+            if (_timeScaleDic.ContainsKey(timeKey) is false)
             {
-                timeScaleDic.Add(timeKey, new());
+                _timeScaleDic.Add(timeKey, new TimeValue());
             }
 
-            return timeScaleDic[timeKey];
+            return _timeScaleDic[timeKey];
         }
 
         public void SetTimeScale(string timeKey, float timeScale)
         {
-            if (timeScaleDic.ContainsKey(timeKey) is false)
+            if (_timeScaleDic.ContainsKey(timeKey) is false)
             {
-                timeScaleDic.Add(timeKey, new(timeScale));
+                _timeScaleDic.Add(timeKey, new TimeValue(timeScale));
             }
 
-            timeScaleDic[timeKey].timeFactor = timeScale;
-            timeScaleDic[timeKey].FactorChangeEvent?.Invoke(timeScale);
+            _timeScaleDic[timeKey].TimeFactor = timeScale;
+            _timeScaleDic[timeKey].FactorChangeEvent?.Invoke(timeScale);
         }
 
         private void ResetAllTimeScale()
         {
-            foreach (var timeKey in timeScaleDic.Keys)
+            foreach (var timeKey in _timeScaleDic.Keys)
             {
-                SetTimeScale(timeKey, DefaultTimeScaleFactor);
+                SetTimeScale(timeKey, DEFAULT_TIME_SCALE_FACTOR);
             }
         }
 
-        private async UniTask WaitSecondTime(float waitTime, string timeKey = DefaultTimeKey)
+        private async UniTask WaitSecondTime(float waitTime, string timeKey = DEFAULT_TIME_KEY)
         {
-            float timer = waitTime;
+            var timer = waitTime;
 
             while (timer <= 0)
             {
                 await UniTask.WaitForEndOfFrame();
-                timer -= UnityEngine.Time.deltaTime * timeScaleDic[timeKey];
+                timer -= UnityEngine.Time.deltaTime * _timeScaleDic[timeKey];
             }
         }
     }
