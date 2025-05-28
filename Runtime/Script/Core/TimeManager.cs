@@ -27,7 +27,17 @@ namespace Engine.Core.Time
         private const string DEFAULT_TIME_KEY = "Default";
         private const float DEFAULT_TIME_SCALE_FACTOR = 1f;
 
-        public float GetTimeScale(string timeKey = DEFAULT_TIME_KEY)
+        public float GetTimeScaleFactor(string timeKey = DEFAULT_TIME_KEY)
+        {
+            if (_timeScaleDic.ContainsKey(timeKey) is false)
+            {
+                _timeScaleDic.Add(timeKey, new TimeValue());
+            }
+
+            return _timeScaleDic[timeKey] * UnityEngine.Time.deltaTime;
+        }
+
+        public UnityEvent<float> GetFactorChangeEvent(string timeKey)
         {
             if (_timeScaleDic.ContainsKey(timeKey) is false)
             {
