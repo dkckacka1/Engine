@@ -12,6 +12,7 @@ namespace Engine.Core.Time
         {
             public float TimeFactor = 1f;
             public readonly UnityEvent<float> FactorChangeEvent = new();
+            public bool TimerPause = false;
 
             public TimeValue(float timeFactor = DEFAULT_TIME_SCALE_FACTOR)
             {
@@ -68,14 +69,23 @@ namespace Engine.Core.Time
             _timeScaleDic[timeKey].TimeFactor = timeScale;
             _timeScaleDic[timeKey].FactorChangeEvent?.Invoke(timeScale);
         }
+
+        public void SettingTimer(string timeKey, bool isPause)
+        {
+            _timeScaleDic[timeKey].TimerPause = isPause;
+        }
         
-        public async UniTask StartTimer(float waitTime, string timeKey = DEFAULT_TIME_KEY)
+        public async UniTask StartTimer(float waitTime, string timeKey = DEFAULT_TIME_KEY, UnityAction<float> timerAction = null)
         {
             var timer = waitTime;
 
             while (timer > 0)
             {
                 await UniTask.NextFrame();
+                if (_timeScaleDic[timeKey].TimerPause)
+                    continue;
+                
+                timerAction?.Invoke(timer);
                 timer -= GetDeltaTimeScale(timeKey);
             }
         }
