@@ -37,17 +37,6 @@ namespace Engine.Core
                 throw new InvalidCastException($"Cannot cast object of type '{instanceTypeName}' to type '{typeof(T).FullName}'.");
             }
         }
-        
-        public static T CreateClass<T>(string className, params object[] constructorParams) where T : class
-        {
-            Type result = null;
-            result = Type.GetType(className);
-            Debug.Log(result.Name);
-
-
-            return result as T;
-        }
-
         public static string GetNamespace<T>() => typeof(T).Namespace;
     }
 }
