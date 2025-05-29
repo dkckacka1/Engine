@@ -4,8 +4,10 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
 using Engine.Util;
 using Cysharp.Threading.Tasks;
+using UnityEngine.SceneManagement;
 
 namespace Engine.Core.Addressable
 {
@@ -18,53 +20,56 @@ namespace Engine.Core.Addressable
 
     public class CacheData
     {
-        public string cachingType;
-        public UnityEngine.Object originObject;
+        public string CachingType;
+        public UnityEngine.Object OriginObject;
     }
 
     public class AddressableManager : SingletonMonoBehaviour<AddressableManager>
     {
-        private Dictionary<string, CacheData> loadedAddressableDic = new();
-        private HashSet<string> loadingHashSet = new();
+        private readonly Dictionary<string, CacheData> _loadedAddressableDic = new();
+        private readonly HashSet<string> _loadingHashSet = new();
 
-        private const string PermanentTypeName = "Permanent";
-        private const string SceneTypeName = "Scene";
+        private const string PERMANENT_TYPE_NAME = "Permanent";
+        private const string SCENE_TYPE_NAME = "Scene";
 
-        private bool isLoading = false;
+        public override void Initialized()
+        {
+            base.Initialized();
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
 
         public async Task<T> LoadAssetAsync<T>(string address, CachingType cachingType = CachingType.Scene, string customTypeName = "Custom") where T : UnityEngine.Object
         {
-            if (loadingHashSet.Contains(address))
+            if (_loadingHashSet.Contains(address))
                 // 동시에 여러개의 로드 호출이 있을 경우 대기
             {
-                await UniTask.WaitUntil(() => loadingHashSet.Contains(address) is false);
+                await UniTask.WaitUntil(() => _loadingHashSet.Contains(address) is false);
             }
 
-            if (loadedAddressableDic.TryGetValue(address, out var cacheData))
+            if (_loadedAddressableDic.TryGetValue(address, out var cacheData))
             {
-                return cacheData.originObject as T;
+                return cacheData.OriginObject as T;
             }
 
-            loadingHashSet.Add(address);
+            _loadingHashSet.Add(address);
             cacheData = new CacheData();
-            cacheData.cachingType = GetCachingTypeName(cachingType);
+            cacheData.CachingType = GetCachingTypeName(cachingType);
 
             if (IsComponentType<T>())
                 // Component 타입
             {
-                AsyncOperationHandle<GameObject> asyncOperationHandle = Addressables.LoadAssetAsync<GameObject>(address);
+                var asyncOperationHandle = Addressables.LoadAssetAsync<GameObject>(address);
                 await asyncOperationHandle.Task;
-                GameObject result = null;
                 switch (asyncOperationHandle.Status)
                 {
                     case AsyncOperationStatus.None:
                         break;
                     case AsyncOperationStatus.Succeeded:
                         {
-                            result = asyncOperationHandle.Result;
+                            var result = asyncOperationHandle.Result;
 
-                            loadedAddressableDic.Add(address, cacheData);
-                            loadingHashSet.Remove(address);
+                            _loadedAddressableDic.Add(address, cacheData);
+                            _loadingHashSet.Remove(address);
                             return result.GetComponent<T>();
                         }
                     case AsyncOperationStatus.Failed:
@@ -77,20 +82,19 @@ namespace Engine.Core.Addressable
             else
                 // Asset 타입
             {
-                AsyncOperationHandle<T> asyncOperationHandle = Addressables.LoadAssetAsync<T>(address);
+                var asyncOperationHandle = Addressables.LoadAssetAsync<T>(address);
                 await asyncOperationHandle.Task;
-                T result = null;
                 switch (asyncOperationHandle.Status)
                 {
                     case AsyncOperationStatus.None:
                         break;
                     case AsyncOperationStatus.Succeeded:
                         {
-                            result = asyncOperationHandle.Result;
+                            var result = asyncOperationHandle.Result;
 
-                            cacheData.originObject = result;
-                            loadedAddressableDic.Add(address, cacheData);
-                            loadingHashSet.Remove(address);
+                            cacheData.OriginObject = result;
+                            _loadedAddressableDic.Add(address, cacheData);
+                            _loadingHashSet.Remove(address);
                             return result;
                         }
                     case AsyncOperationStatus.Failed:
@@ -109,18 +113,18 @@ namespace Engine.Core.Addressable
             Transform parent = null,
             CachingType cachingType = CachingType.Scene,
             string customTypeName = "Custom",
-            Action<AsyncOperationHandle<GameObject>> handle_Complete = null
+            Action<AsyncOperationHandle<GameObject>> handleComplete = null
             ) where T : UnityEngine.Object
         {
-            if (loadedAddressableDic.ContainsKey(address) is false)
+            if (_loadedAddressableDic.ContainsKey(address) is false)
             {
                 await LoadAssetAsync<T>(address, cachingType, customTypeName);
             }
 
-            CacheData data = loadedAddressableDic[address];
+            var data = _loadedAddressableDic[address];
 
-            AsyncOperationHandle<GameObject> asyncOperHandle = (parent == null) ? Addressables.InstantiateAsync(address) : Addressables.InstantiateAsync(address, parent);
-            asyncOperHandle.Completed += handle_Complete;
+            var asyncOperHandle = (parent == null) ? Addressables.InstantiateAsync(address) : Addressables.InstantiateAsync(address, parent);
+            asyncOperHandle.Completed += handleComplete;
             await asyncOperHandle.Task;
 
             switch (asyncOperHandle.Status)
@@ -148,43 +152,39 @@ namespace Engine.Core.Addressable
 
         public void ReleaseAll(CachingType cachingType, string customName = "Custom")
         {
-            string cachingTypeName = GetCachingTypeName(cachingType, customName);
+            var cachingTypeName = GetCachingTypeName(cachingType, customName);
 
-            foreach (var loadedObject in loadedAddressableDic)
+            foreach (var loadedObject in _loadedAddressableDic
+                         .Where(loadedObject => loadedObject.Value.CachingType == cachingTypeName))
             {
-                if (loadedObject.Value.cachingType == cachingTypeName)
-                {
-                    Release(loadedObject.Key);
-                }
+                Release(loadedObject.Key);
             }
         }
 
         public void Release(string address)
         {
-            if (loadedAddressableDic.TryGetValue(address, out var data))
+            if (_loadedAddressableDic.TryGetValue(address, out var data))
             {
-                Addressables.Release(data.originObject);
+                Addressables.Release(data.OriginObject);
 
-                loadedAddressableDic.Remove(address);
+                _loadedAddressableDic.Remove(address);
             }
         }
-
-        private string GetCachingTypeName(CachingType cachingType, string customName = "Custom")
+        
+        private void OnSceneLoaded(Scene arg0, LoadSceneMode arg1)
         {
-            string result = "";
+            ReleaseAll(CachingType.Scene);
+        }
 
-            switch (cachingType)
+        private static string GetCachingTypeName(CachingType cachingType, string customName = "Custom")
+        {
+            var result = cachingType switch
             {
-                case CachingType.Permanent:
-                    result = PermanentTypeName;
-                    break;
-                case CachingType.Scene:
-                    result = SceneTypeName;
-                    break;
-                case CachingType.Custom:
-                    result = customName;
-                    break;
-            }
+                CachingType.Permanent => PERMANENT_TYPE_NAME,
+                CachingType.Scene => SCENE_TYPE_NAME,
+                CachingType.Custom => customName,
+                _ => ""
+            };
 
             return result;
         }
