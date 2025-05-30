@@ -7,53 +7,40 @@ namespace Engine.Core.EventBus
 {
     public class EnumEventBus<T> : IDisposable where T : Enum
     {
-        private Dictionary<T, UnityEvent> eventDic = new();
-        private T currentype = default;
+        private readonly UnityEvent<T> _enumEvent = new();
+        private T _currentType = default;
 
-        public T CurrentType => currentype;
-
-        public EnumEventBus()
-        {
-            EnumExtension.Foreach<T>((type) =>
-            {
-                eventDic.Add(type, new UnityEvent());
-            });
-        }
+        public T CurrentType => _currentType;
 
         public void ChangeEvent(T type)
         {
-            currentype = type;
+            _currentType = type;
             InvokeEvent(CurrentType);
         }
 
-        public void PublishEvent(T eventType, UnityAction action)
+        public void PublishEvent(IEnumEvent<T> enumEvent)
         {
-            eventDic[eventType].AddListener(action);
+            _enumEvent.AddListener(enumEvent.OnEnumChange);
         }
 
-        public void RemoveEvent(T eventType, UnityAction action)
+        public void RemoveEvent(IEnumEvent<T> enumEvent)
         {
-            eventDic[eventType].RemoveListener(action);
+            _enumEvent.RemoveListener(enumEvent.OnEnumChange);
         }
 
-        public void ClearEvent(T eventType)
+        public void ClearEvent()
         {
-            eventDic[eventType].RemoveAllListeners();
+            _enumEvent.RemoveAllListeners();
         }
 
         private void InvokeEvent(T eventType)
         {
-            eventDic[eventType]?.Invoke();
+            _enumEvent.Invoke(eventType);
         }
 
         public void Dispose()
         {
-            EnumExtension.Foreach<T>((type) =>
-            {
-                ClearEvent(type);
-            });
-
-            eventDic.Clear();
+            ClearEvent();
         }
     }
 }
