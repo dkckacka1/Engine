@@ -12,16 +12,16 @@ namespace Engine.AI.BehaviourTree
     public class NodeView : UnityEditor.Experimental.GraphView.Node
     {
         public Action<NodeView> OnNodeSelected;
-        public Node node;
-        public Port input;
-        public Port output;
+        public readonly Node Node;
+        public Port Input;
+        public Port Output;
 
-        Label subtitleLable;
-        Label descriptionLabel;
+        private readonly Label _subtitleLable;
+        private readonly Label _descriptionLabel;
 
         public NodeView(Node node) : base(UnityEditor.AssetDatabase.GetAssetPath(Resources.Load<BehaviourTreeData>("BehaviourTreeData").nodeView))
         {
-            this.node = node;
+            Node = node;
             title = node.name;
             viewDataKey = node.guid;
 
@@ -32,110 +32,104 @@ namespace Engine.AI.BehaviourTree
             CreateOutPorts();
             SetupClasses();
 
-            descriptionLabel = this.Q<Label>("description");
-            descriptionLabel.bindingPath = "description";
-            descriptionLabel.Bind(new SerializedObject(node));
+            _descriptionLabel = this.Q<Label>("description");
+            _descriptionLabel.bindingPath = "description";
+            _descriptionLabel.Bind(new SerializedObject(node));
 
-            subtitleLable = this.Q<Label>("subtitle");
+            _subtitleLable = this.Q<Label>("subtitle");
             SetSubTitleName();
             SetDescription();
         }
 
+        public sealed override string title
+        {
+            get => base.title;
+            set => base.title = value;
+        }
+
         private void SetupClasses()
         {
-            if (node is ActionNode)
+            switch (Node)
             {
-                AddToClassList("action");
-            }
-            else if (node is CompositeNode)
-            {
-                AddToClassList("composite");
-            }
-            else if (node is DecoratorNode)
-            {
-                AddToClassList("decorator");
-            }
-            else if (node is RootNode)
-            {
-                AddToClassList("root");
+                case ActionNode:
+                    AddToClassList("action");
+                    break;
+                case CompositeNode:
+                    AddToClassList("composite");
+                    break;
+                case DecoratorNode:
+                    AddToClassList("decorator");
+                    break;
+                case RootNode:
+                    AddToClassList("root");
+                    break;
             }
         }
 
         private void CreateInputPorts()
         {
-            if (node is ActionNode)
+            switch (Node)
             {
-                input = InstantiatePort(Orientation.Vertical, Direction.Input, Port.Capacity.Single, typeof(bool));
-            }
-            else if (node is CompositeNode)
-            {
-                input = InstantiatePort(Orientation.Vertical, Direction.Input, Port.Capacity.Single, typeof(bool));
-            }
-            else if (node is DecoratorNode)
-            {
-                input = InstantiatePort(Orientation.Vertical, Direction.Input, Port.Capacity.Single, typeof(bool));
-            }
-            else if (node is RootNode)
-            {
+                case ActionNode:
+                case CompositeNode:
+                case DecoratorNode:
+                    Input = InstantiatePort(Orientation.Vertical, Direction.Input, Port.Capacity.Single, typeof(bool));
+                    break;
+                case RootNode:
+                    break;
             }
 
-            if (input != null)
+            if (Input != null)
             {
-                input.portName = "";
-                input.style.flexDirection = FlexDirection.Column;
-                inputContainer.Add(input);
+                Input.portName = "";
+                Input.style.flexDirection = FlexDirection.Column;
+                inputContainer.Add(Input);
             }
         }
 
 
         private void CreateOutPorts()
         {
-            if (node is ActionNode)
+            switch (Node)
             {
-            }
-            else if (node is CompositeNode)
-            {
-                output = InstantiatePort(Orientation.Vertical, Direction.Output, Port.Capacity.Multi, typeof(bool));
-            }
-            else if (node is DecoratorNode)
-            {
-                output = InstantiatePort(Orientation.Vertical, Direction.Output, Port.Capacity.Single, typeof(bool));
-            }
-            else if (node is RootNode)
-            {
-                output = InstantiatePort(Orientation.Vertical, Direction.Output, Port.Capacity.Single, typeof(bool));
+                case ActionNode:
+                    break;
+                case CompositeNode:
+                    Output = InstantiatePort(Orientation.Vertical, Direction.Output, Port.Capacity.Multi, typeof(bool));
+                    break;
+                case DecoratorNode:
+                case RootNode:
+                    Output = InstantiatePort(Orientation.Vertical, Direction.Output, Port.Capacity.Single, typeof(bool));
+                    break;
             }
 
-            if (output != null)
+            if (Output != null)
             {
-                output.portName = "";
-                output.style.flexDirection = FlexDirection.ColumnReverse;
-                outputContainer.Add(output);
+                Output.portName = "";
+                Output.style.flexDirection = FlexDirection.ColumnReverse;
+                outputContainer.Add(Output);
             }
         }
 
         public override void SetPosition(Rect newPos)
         {
             base.SetPosition(newPos);
-            Undo.RecordObject(node, "Behaviour Tree (Set Position)");
-            node.position.x = newPos.x;
-            node.position.y = newPos.y;
-            EditorUtility.SetDirty(node);
+            Undo.RecordObject(Node, "Behaviour Tree (Set Position)");
+            Node.position.x = newPos.x;
+            Node.position.y = newPos.y;
+            EditorUtility.SetDirty(Node);
         }
 
         public override void OnSelected()
         {
             base.OnSelected();
 
-            if (OnNodeSelected != null)
-            {
-                OnNodeSelected.Invoke(this);
-            }
+            OnNodeSelected?.Invoke(this);
         }
 
         public void SortChildren()
         {
-            CompositeNode composite = node as CompositeNode;
+            var composite = Node as CompositeNode;
 
             if (composite)
             {
@@ -156,10 +150,10 @@ namespace Engine.AI.BehaviourTree
 
             if (Application.isPlaying)
             {
-                switch (node.state)
+                switch (Node.state)
                 {
                     case Node.State.Running:
-                        if (node.started)
+                        if (Node.started)
                         {
                             AddToClassList("running");
                         }
@@ -170,6 +164,8 @@ namespace Engine.AI.BehaviourTree
                     case Node.State.Success:
                         AddToClassList("success");
                         break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             }
         }
@@ -181,26 +177,26 @@ namespace Engine.AI.BehaviourTree
             RemoveFromClassList("success");
         }
 
-        public static bool TryGetInputNodeView(NodeView nodeView, out NodeView inputNodeView)
+        private static bool TryGetInputNodeView(NodeView nodeView, out NodeView inputNodeView)
         {
             inputNodeView = null;
 
-            if (nodeView.input is not null && nodeView.input.connected)
+            if (nodeView.Input is not null && nodeView.Input.connected)
             {
-                Edge edge = nodeView.input.connections.SingleOrDefault();
+                Edge edge = nodeView.Input.connections.SingleOrDefault();
                 inputNodeView = edge.output.node as NodeView;
             }
 
             return inputNodeView is not null ? true : false;
         }
 
-        public static bool TryGetOutputNodeViews(NodeView nodeView, out IEnumerable<NodeView> outputNodeViews)
+        private static bool TryGetOutputNodeViews(NodeView nodeView, out IEnumerable<NodeView> outputNodeViews)
         {
             outputNodeViews = null;
 
-            if (nodeView.output is not null && nodeView.output.connected)
+            if (nodeView.Output is not null && nodeView.Output.connected)
             {
-                outputNodeViews = nodeView.output.connections.Select(edge => edge.input.node as NodeView);
+                outputNodeViews = nodeView.Output.connections.Select(edge => edge.input.node as NodeView);
             }
 
             return outputNodeViews is not null ? true : false;
@@ -208,36 +204,33 @@ namespace Engine.AI.BehaviourTree
 
         public override string ToString()
         {
-            string result = $"currentNode : {node.name}\n";
+            var result = $"currentNode : {Node.name}\n";
 
-            if (input is null)
+            if (Input is null)
             {
                 result += $"input : null\n";
             }
-            else if (input.connected is false)
+            else if (Input.connected is false)
             {
                 result += $"input node : null\n";
             }
             else if (TryGetInputNodeView(this, out var inputNodeView))
             {
-                result += $"inputNode : {inputNodeView.node.name}\n";
+                result += $"inputNode : {inputNodeView.Node.name}\n";
             }
 
-            if (output is null)
+            if (Output is null)
             {
                 result += $"output : null\n";
             }
-            else if (output.connected is false)
+            else if (Output.connected is false)
             {
                 result += $"output node : null\n";
             }
             else if (TryGetOutputNodeViews(this, out var outputNodeViews))
             {
                 result += $"outputNodes\n";
-                foreach (var nodeView in outputNodeViews)
-                {
-                    result += $"{nodeView.node.name}\n";
-                }
+                result = outputNodeViews.Aggregate(result, (current, nodeView) => current + $"{nodeView.Node.name}\n");
             }
 
             return result;
@@ -245,22 +238,22 @@ namespace Engine.AI.BehaviourTree
 
         public void SetSubTitleName()
         {
-            string subTitleName = node.GetSubTitleName;
+            var subTitleName = Node.GetSubTitleName;
 
             if (string.IsNullOrEmpty(subTitleName))
             {
-                subtitleLable.parent.style.display = DisplayStyle.None; 
+                _subtitleLable.parent.style.display = DisplayStyle.None; 
             }
             else
             {
-                subtitleLable.parent.style.display = DisplayStyle.Flex;
-                subtitleLable.text = subTitleName;
+                _subtitleLable.parent.style.display = DisplayStyle.Flex;
+                _subtitleLable.text = subTitleName;
             }
         }
 
         public void SetDescription()
         {
-            descriptionLabel.text = node.GetDescription;
+            _descriptionLabel.text = Node.GetDescription;
         }
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
@@ -269,17 +262,17 @@ namespace Engine.AI.BehaviourTree
 
             evt.menu.AppendAction("check", _ =>
             {
-                Debug.Log(subtitleLable.parent.name);
+                Debug.Log(_subtitleLable.parent.name);
             });
 
             evt.menu.AppendAction("enable", _ =>
             {
-                subtitleLable.parent.style.display = DisplayStyle.Flex;
+                _subtitleLable.parent.style.display = DisplayStyle.Flex;
             });
 
             evt.menu.AppendAction("Disable", _ =>
             {
-                subtitleLable.parent.style.display = DisplayStyle.None;
+                _subtitleLable.parent.style.display = DisplayStyle.None;
             });
         }
     }

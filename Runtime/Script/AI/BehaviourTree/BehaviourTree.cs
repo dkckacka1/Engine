@@ -60,7 +60,7 @@ namespace Engine.AI.BehaviourTree
             return node;
         }
 
-        public void Deletenode(Node node)
+        public void DeleteNode(Node node)
         {
             Undo.RecordObject(this, "Behaviour Tree (DeleteNode)");
             nodes.Remove(node);

@@ -8,7 +8,7 @@ namespace Engine.EditorUtil
     [InitializeOnLoad]
     public class SetDependencies : Editor
     {
-        private static DependenceData dependenceData;
+        private static readonly DependenceData dependenceData;
 
         static SetDependencies()
         {
@@ -19,9 +19,9 @@ namespace Engine.EditorUtil
                 foreach (var dependence in dependenceData.gitDataList)
                 {
                     Debug.Log($"CheckDependence : {dependence.GitName}");
-                    bool checkUnitaskInstalled = CheckPackageInstalled(dependence.GitName);
+                    var checkUniTaskInstalled = CheckPackageInstalled(dependence.GitName);
 
-                    if (!checkUnitaskInstalled)
+                    if (!checkUniTaskInstalled)
                     {
                         AddPackage(dependence.GitName, dependence.GitURL);
                     }

@@ -8,13 +8,12 @@ namespace Engine.Core.EventBus
     public class EnumEventBus<T> : IDisposable where T : Enum
     {
         private readonly UnityEvent<T> _enumEvent = new();
-        private T _currentType = default;
 
-        public T CurrentType => _currentType;
+        public T CurrentType { get; private set; } = default;
 
         public void ChangeEvent(T type)
         {
-            _currentType = type;
+            CurrentType = type;
             InvokeEvent(CurrentType);
         }
 

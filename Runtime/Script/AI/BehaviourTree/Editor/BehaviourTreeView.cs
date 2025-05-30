@@ -12,7 +12,7 @@ namespace Engine.AI.BehaviourTree
     public partial class BehaviourTreeView : GraphView
     {
         public Action<NodeView> OnNodeSelected;
-        BehaviourTree tree;
+        private BehaviourTree _tree;
 
         public BehaviourTreeView()
         {
@@ -31,18 +31,18 @@ namespace Engine.AI.BehaviourTree
 
         private void OnUndoRedo()
         {
-            PopulateView(tree);
+            PopulateView(_tree);
             AssetDatabase.SaveAssets();
         }
 
-        NodeView FindNodeView(Node node)
+        private NodeView FindNodeView(Node node)
         {
             return GetNodeByGuid(node.guid) as NodeView;
         }
 
         internal void PopulateView(BehaviourTree tree)
         {
-            this.tree = tree;
+            this._tree = tree;
 
             graphViewChanged -= OnGraphViewChanged;
             DeleteElements(graphElements);
@@ -65,7 +65,7 @@ namespace Engine.AI.BehaviourTree
                     NodeView parentView = FindNodeView(n);
                     NodeView childView = FindNodeView(c);
 
-                    Edge edge = parentView.output.ConnectTo(childView.input);
+                    Edge edge = parentView.Output.ConnectTo(childView.Input);
                     AddElement(edge);
                 });
             });
@@ -82,20 +82,18 @@ namespace Engine.AI.BehaviourTree
             {
                 graphViewChange.elementsToRemove.ForEach(elem =>
                 {
-                    NodeView nodeView = elem as NodeView;
-                    if (nodeView != null)
+                    if (elem is NodeView nodeView)
                     {
-                        tree.Deletenode(nodeView.node);
+                        _tree.DeleteNode(nodeView.Node);
                     }
 
-                    Edge edge = elem as Edge;
-                    if (edge != null)
+                    if (elem is Edge edge)
                     {
                         NodeView parentView = edge.output.node as NodeView;
                         NodeView childView = edge.input.node as NodeView;
-                        tree.RemoveChild(parentView.node, childView.node);
+                        _tree.RemoveChild(parentView.Node, childView.Node);
 
-                        var compositeNode = parentView.node as CompositeNode;
+                        var compositeNode = parentView.Node as CompositeNode;
                         if (compositeNode)
                         {
                             for (int i = 0; i < compositeNode.children.Count; i++)
@@ -105,7 +103,7 @@ namespace Engine.AI.BehaviourTree
                             }
                         }
 
-                        SetNodeName(childView.node, $"{childView.node.GetTitleName}");
+                        SetNodeName(childView.Node, $"{childView.Node.GetTitleName}");
                     }
                 });
             }
@@ -117,14 +115,14 @@ namespace Engine.AI.BehaviourTree
                     NodeView parentView = edge.output.node as NodeView;
                     NodeView childView = edge.input.node as NodeView;
 
-                    tree.AddChild(parentView.node, childView.node);
+                    _tree.AddChild(parentView.Node, childView.Node);
 
-                    var compositeNode = parentView.node as CompositeNode;
+                    var compositeNode = parentView.Node as CompositeNode;
                     if (compositeNode)
                     {
                         for (int i = 0; i < compositeNode.children.Count; i++)
                         {
-                            Node child = compositeNode.children[i];
+                            var child = compositeNode.children[i];
                             SetNodeName(child, $"[{i + 1}] {child.GetTitleName}");
                         }
                     }
@@ -135,8 +133,8 @@ namespace Engine.AI.BehaviourTree
             {
                 nodes.ForEach((n) =>
                 {
-                    NodeView view = n as NodeView;
-                    view.SortChildren();
+                    var view = n as NodeView;
+                    view?.SortChildren();
                 });
             }
 
@@ -187,15 +185,15 @@ namespace Engine.AI.BehaviourTree
             }
         }
 
-        void CreateNode(Type type)
+        private void CreateNode(Type type)
         {
-            Node node = tree.CreateNode(type);
+            var node = _tree.CreateNode(type);
             CreateNodeView(node);
         }
 
-        void CreateNode(Type type, Vector2 position)
+        private void CreateNode(Type type, Vector2 position)
         {
-            Node node = tree.CreateNode(type);
+            var node = _tree.CreateNode(type);
             var nodeView = CreateNodeView(node);
 
             var targetRect = nodeView.GetPosition();
@@ -203,13 +201,13 @@ namespace Engine.AI.BehaviourTree
             targetRect.y = position.y;
 
             nodeView.SetPosition(targetRect);
-            nodeView.node.position.x = position.x;
-            nodeView.node.position.y = position.y;
+            nodeView.Node.position.x = position.x;
+            nodeView.Node.position.y = position.y;
         }
 
-        NodeView CreateNodeView(Node node)
+        private NodeView CreateNodeView(Node node)
         {
-            NodeView nodeView = new NodeView(node);
+            var nodeView = new NodeView(node);
             nodeView.OnNodeSelected = OnNodeSelected;
             AddElement(nodeView);
 
@@ -218,14 +216,14 @@ namespace Engine.AI.BehaviourTree
 
         public void UpdateNodeState()
         {
-            if (tree is null) return;
+            if (_tree is null) return;
 
-            if (tree.rootNode.state == Node.State.Failure)
+            if (_tree.rootNode.state == Node.State.Failure)
             {
                 nodes.ForEach(n =>
                 {
                     NodeView view = n as NodeView;
-                    view.ClearNode();
+                    view?.ClearNode();
                 });
 
                 return;
@@ -234,8 +232,8 @@ namespace Engine.AI.BehaviourTree
             {
                 nodes.ForEach(n =>
                 {
-                    NodeView view = n as NodeView;
-                    view.Update();
+                    var view = n as NodeView;
+                    view?.Update();
                 });
             }
         }
@@ -244,27 +242,28 @@ namespace Engine.AI.BehaviourTree
         {
             nodes.ForEach(node =>
             {
-                NodeView nodeView = node as NodeView;
+                var nodeView = node as NodeView;
 
-                if (nodeView.node is CompositeNode)
+                if (nodeView != null && nodeView.Node is CompositeNode)
                 {
-                    var compositeNode = nodeView.node as CompositeNode;
+                    var compositeNode = nodeView.Node as CompositeNode;
 
-                    for (int i = 0; i < compositeNode.children.Count; i++)
-                    {
-                        Node child = compositeNode.children[i];
+                    if (compositeNode)
+                        for (int i = 0; i < compositeNode.children.Count; i++)
+                        {
+                            var child = compositeNode.children[i];
 
-                        SetNodeName(child, $"[{i + 1}] {child.GetTitleName}");
-                    }
+                            SetNodeName(child, $"[{i + 1}] {child.GetTitleName}");
+                        }
                 }
             });
         }
 
-        private void SetNodeName(Node node, string name)
+        private void SetNodeName(Node node, string nodeName)
         {
             var nodeView = GetNodeByGuid(node.guid);
-            nodeView.title = name;
-            node.name = name;
+            nodeView.title = nodeName;
+            node.name = nodeName;
         }
     }
 }

@@ -42,7 +42,7 @@ namespace Engine.AI.BehaviourTree
 
             state = OnUpdate();
 
-            if (state == State.Failure || state == State.Success)
+            if (state is State.Failure or State.Success)
             {
                 OnStop();
                 started = false;
@@ -60,11 +60,11 @@ namespace Engine.AI.BehaviourTree
         protected abstract void OnStop();
         protected abstract State OnUpdate();
 
-        protected bool TryGetBlackboard<T>(out T blackborad) where T : Blackboard
+        protected bool TryGetBlackboard<T>(out T blackBoard) where T : Blackboard
         {
-            blackborad = blackboard as T;
+            blackBoard = blackboard as T;
 
-            return blackborad is not null ? true : false;
+            return blackBoard is not null ? true : false;
         }
     }
 }

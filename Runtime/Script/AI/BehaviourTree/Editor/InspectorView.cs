@@ -5,7 +5,7 @@ using Engine.AI.BehaviourTree;
 [UxmlElement("InspectorView")]
 public partial class InspectorView : VisualElement
 {
-    Editor editor;
+    private Editor _editor;
 
     public InspectorView()
     {
@@ -16,16 +16,16 @@ public partial class InspectorView : VisualElement
     {
         Clear();
 
-        UnityEngine.Object.DestroyImmediate(editor);
+        UnityEngine.Object.DestroyImmediate(_editor);
 
         if (tree is null) return;
 
-        editor = Editor.CreateEditor(tree);
+        _editor = Editor.CreateEditor(tree);
         IMGUIContainer container = new IMGUIContainer(() =>
         {
-            if (editor.target)
+            if (_editor.target)
             {
-                editor.OnInspectorGUI();
+                _editor.OnInspectorGUI();
             }
         });
         Add(container);
@@ -35,17 +35,17 @@ public partial class InspectorView : VisualElement
     {
         Clear();
 
-        UnityEngine.Object.DestroyImmediate(editor);
+        UnityEngine.Object.DestroyImmediate(_editor);
 
         if (nodeView is null) return;
 
-        editor = Editor.CreateEditor(nodeView.node);
+        _editor = Editor.CreateEditor(nodeView.Node);
 
         IMGUIContainer container = new IMGUIContainer(() =>
         { 
-            if (editor.target)
+            if (_editor.target)
             {
-                editor.OnInspectorGUI(); 
+                _editor.OnInspectorGUI(); 
             }
         });
         Add(container);

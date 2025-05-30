@@ -10,9 +10,9 @@ namespace Engine.Core.Time
     {
         private class TimeValue
         {
-            public float TimeFactor = 1f;
+            public float TimeFactor;
             public readonly UnityEvent<float> FactorChangeEvent = new();
-            public bool TimerPause = false;
+            public bool TimerPause;
 
             public TimeValue(float timeFactor = DEFAULT_TIME_SCALE_FACTOR)
             {

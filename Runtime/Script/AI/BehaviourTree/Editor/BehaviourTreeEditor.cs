@@ -8,13 +8,13 @@ namespace Engine.AI.BehaviourTree
 {
     public class BehaviourTreeEditor : EditorWindow
     {
-        BehaviourTreeView treeView;
-        InspectorView treeInspectorView;
-        InspectorView nodeInspectorView;
+        private BehaviourTreeView _treeView;
+        private InspectorView _treeInspectorView;
+        private InspectorView _nodeInspectorView;
 
-        BehaviourTree currentTree;
+        private BehaviourTree _currentTree;
 
-        public static BehaviourTreeEditor Instance { get; private set; }
+        private static BehaviourTreeEditor Instance { get; set; }
 
         [MenuItem("BehaviourTreeEditor/Editor")]
         public static void OpenWindow()
@@ -38,7 +38,7 @@ namespace Engine.AI.BehaviourTree
         public void CreateGUI()
         {
             // Each editor window contains a root VisualElement object
-            VisualElement root = rootVisualElement;
+            var root = rootVisualElement;
 
             var behaviourTreeData = Resources.Load<BehaviourTreeData>("BehaviourTreeData");
 
@@ -49,12 +49,12 @@ namespace Engine.AI.BehaviourTree
             var styleSheet = behaviourTreeData.stypeSheet;
             root.styleSheets.Add(styleSheet);
 
-            treeView = root.Q<BehaviourTreeView>();
-            treeInspectorView = root.Q<InspectorView>("tree_inspector_container");
+            _treeView = root.Q<BehaviourTreeView>();
+            _treeInspectorView = root.Q<InspectorView>("tree_inspector_container");
 
-            nodeInspectorView = root.Q<InspectorView>("node_inspector_container");
+            _nodeInspectorView = root.Q<InspectorView>("node_inspector_container");
 
-            treeView.OnNodeSelected = OnNodeSelectionChanged;
+            _treeView.OnNodeSelected = OnNodeSelectionChanged;
 
             OnSelectionChange();
         }
@@ -88,12 +88,14 @@ namespace Engine.AI.BehaviourTree
                     break;
                 case PlayModeStateChange.ExitingPlayMode:
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(obj), obj, null);
             }
         }
 
         private void OnSelectionChange()
         {
-            BehaviourTree tree = Selection.activeObject as BehaviourTree;
+            var tree = Selection.activeObject as BehaviourTree;
 
             if (!tree)
             {
@@ -104,70 +106,63 @@ namespace Engine.AI.BehaviourTree
                     if (runner)
                     {
                         tree = runner.tree;
-                        currentTree = tree;
+                        _currentTree = tree;
                     }
                 }
 
-                treeInspectorView?.UpdateTreeObject(tree);
+                _treeInspectorView?.UpdateTreeObject(tree);
             }
 
             if (Application.isPlaying)
             {
-                if (tree && treeView is not null)
+                if (tree && _treeView is not null)
                 {
-                    treeView?.PopulateView(tree);
+                    _treeView?.PopulateView(tree);
 
-                    if (currentTree != tree)
+                    if (_currentTree != tree)
                     {
-                        treeInspectorView?.UpdateTreeObject(null);
+                        _treeInspectorView?.UpdateTreeObject(null);
                     }
 
-                    nodeInspectorView?.UpdateSelection(null);
+                    _nodeInspectorView?.UpdateSelection(null);
                 }
             }
             else
             {
                 if (tree && AssetDatabase.CanOpenAssetInEditor(tree.GetInstanceID()))
                 {
-                    treeView?.PopulateView(tree);
+                    _treeView?.PopulateView(tree);
                 }
 
-                treeInspectorView?.UpdateTreeObject(null);
-                nodeInspectorView?.UpdateSelection(null);
+                _treeInspectorView?.UpdateTreeObject(null);
+                _nodeInspectorView?.UpdateSelection(null);
             }
         }
 
-        void OnNodeSelectionChanged(NodeView nodeView)
+        private void OnNodeSelectionChanged(NodeView nodeView)
         {
-            nodeInspectorView.UpdateSelection(nodeView);
+            _nodeInspectorView.UpdateSelection(nodeView);
         }
 
         private void OnInspectorUpdate()
         {
-            if (treeView is null) return;
-
-            treeView.UpdateNodeState();
+            _treeView?.UpdateNodeState();
         }
 
         public static void UpdateTreeView()
         {
-            BehaviourTreeEditor editor = GetWindow<BehaviourTreeEditor>();
+            var editor = GetWindow<BehaviourTreeEditor>();
 
-            if (editor && editor.treeView != null)
+            if (editor && editor._treeView != null)
             {
-                editor.treeView.UpdateNodeName();
+                editor._treeView.UpdateNodeName();
             }
         }
 
         public static void UpdateNodeView(Node node)
         {
-            if (Instance is null) return;
-            if (Instance.treeView is null) return;
-
-            var treeView = Instance?.treeView;
-            NodeView nodeView = treeView.GetNodeByGuid(node.guid) as NodeView;
-
-            if (nodeView is not null)
+            var treeView = Instance?._treeView;
+            if (treeView?.GetNodeByGuid(node.guid) is NodeView nodeView)
             {
                 nodeView.SetSubTitleName();
                 nodeView.SetDescription();

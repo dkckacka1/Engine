@@ -8,35 +8,29 @@ namespace Engine.Util
         {
             get
             {
-                if (instance is null)
+                if (_instance is null)
                 {
                     var newObject = new GameObject();
                     newObject.name = typeof(T).Name;
 
                     var ins = newObject.AddComponent<T>();
 
-                    instance = ins; 
+                    _instance = ins; 
                 }
 
-                return instance;
+                return _instance;
             }
         }
 
-        public static bool HasInstance
-        {
-            get
-            {
-                return instance is not null;
-            }
-        }
+        public static bool HasInstance => _instance is not null;
 
-        private static T instance;
+        private static T _instance;
 
         private void Awake()
         {
-            if (instance is null)
+            if (_instance is null)
             {
-                instance = GetComponent<T>();
+                _instance = GetComponent<T>();
                 DontDestroyOnLoad(this.gameObject);
             }
             else
@@ -48,6 +42,6 @@ namespace Engine.Util
             Initialized();
         }
 
-        public virtual void Initialized() { }
+        protected virtual void Initialized() { }
     }
 }

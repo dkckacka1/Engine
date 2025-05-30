@@ -1,45 +1,50 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 
 using Engine.Util;
+using Object = UnityEngine.Object;
 
 namespace Engine.Core
 {
     public struct ObjectPoolEvent<T> where T : Object
     {
-        public System.Func<T> createFunc;
-        public System.Action<T> actionOnGet;
-        public System.Action<T> actionOnRelease;
-        public System.Action<T> actionOnDestroy;
+        public readonly System.Func<T> CreateFunc;
+        public readonly System.Action<T> ActionOnGet;
+        public readonly System.Action<T> ActionOnRelease;
+        public readonly System.Action<T> ActionOnDestroy;
 
-        public ObjectPoolEvent(System.Func<T> createFunc) : this()
+        public ObjectPoolEvent(System.Func<T> createFunc, Action<T> actionOnGet, Action<T> actionOnRelease, Action<T> actionOnDestroy) : this()
         {
-            this.createFunc = createFunc;
+            this.CreateFunc = createFunc;
+            ActionOnGet = actionOnGet;
+            ActionOnRelease = actionOnRelease;
+            ActionOnDestroy = actionOnDestroy;
         }
     }
 
     public class ObjectPoolController
     {
-        private Dictionary<string, IObjectPool<Object>> poolDic;
+        private readonly Dictionary<string, IObjectPool<Object>> _poolDic;
 
         public ObjectPoolController()
         {
-            poolDic = new Dictionary<string, IObjectPool<Object>>();
+            _poolDic = new Dictionary<string, IObjectPool<Object>>();
         }
 
         public void CreatePool<T>(string key, ObjectPoolEvent<T> poolEvent, int defaultCap = 10, int maxSize = 100) where T : Object
         {
-            var pool = new ObjectPool<T>(poolEvent.createFunc, poolEvent.actionOnGet, poolEvent.actionOnRelease, poolEvent.actionOnDestroy, true, defaultCap, maxSize); ;
+            var pool = new ObjectPool<T>(poolEvent.CreateFunc, poolEvent.ActionOnGet, poolEvent.ActionOnRelease, poolEvent.ActionOnDestroy, true, defaultCap, maxSize); ;
 
-            poolDic.TryAdd(key, (IObjectPool<Object>)pool);
+            _poolDic.TryAdd(key, (IObjectPool<Object>)pool);
         }
 
         public T Get<T>(string key) where T : Object
         {
             T result = null;
 
-            if (poolDic.TryGetValue(key, out var pool))
+            if (_poolDic.TryGetValue(key, out var pool))
             {
                 result = pool.Get() as T;
 
@@ -60,7 +65,7 @@ namespace Engine.Core
         {
             if (element is null) return;
 
-            if (poolDic.TryGetValue(key, out IObjectPool<Object> pool))
+            if (_poolDic.TryGetValue(key, out IObjectPool<Object> pool))
             {
                 if (pool is IObjectPool<T>)
                 {
@@ -79,10 +84,10 @@ namespace Engine.Core
 
         public void Clear(string key)
         {
-            if (poolDic.ContainsKey(key))
+            if (_poolDic.ContainsKey(key))
             {
-                poolDic[key].Clear();
-                poolDic.Remove(key);
+                _poolDic[key].Clear();
+                _poolDic.Remove(key);
             }
         }
     }

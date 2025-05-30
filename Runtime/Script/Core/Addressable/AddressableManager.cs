@@ -32,7 +32,7 @@ namespace Engine.Core.Addressable
         private const string PERMANENT_TYPE_NAME = "Permanent";
         private const string SCENE_TYPE_NAME = "Scene";
 
-        public override void Initialized()
+        protected override void Initialized()
         {
             base.Initialized();
             SceneManager.sceneLoaded += OnSceneLoaded;
