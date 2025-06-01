@@ -1,16 +1,13 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
-using Cysharp.Threading.Tasks;
-
-using Zenject;
-
 using Engine.Util;
+using Cysharp.Threading.Tasks;
+using UnityEngine.SceneManagement;
 
 namespace Engine.Core.Addressable
 {
@@ -55,10 +52,8 @@ namespace Engine.Core.Addressable
             }
 
             _loadingHashSet.Add(address);
-            cacheData = new CacheData
-            {
-                CachingType = GetCachingTypeName(cachingType)
-            };
+            cacheData = new CacheData();
+            cacheData.CachingType = GetCachingTypeName(cachingType);
 
             if (IsComponentType<T>())
                 // Component 타입
@@ -118,8 +113,7 @@ namespace Engine.Core.Addressable
             Transform parent = null,
             CachingType cachingType = CachingType.Scene,
             string customTypeName = "Custom",
-            Action<AsyncOperationHandle<GameObject>> handleComplete = null,
-            DiContainer container = null
+            Action<AsyncOperationHandle<GameObject>> handleComplete = null
             ) where T : UnityEngine.Object
         {
             if (_loadedAddressableDic.ContainsKey(address) is false)
@@ -129,9 +123,7 @@ namespace Engine.Core.Addressable
 
             var data = _loadedAddressableDic[address];
 
-            var asyncOperHandle = (!parent)
-                ? Addressables.InstantiateAsync(address)
-                : Addressables.InstantiateAsync(address, parent);
+            var asyncOperHandle = (parent == null) ? Addressables.InstantiateAsync(address) : Addressables.InstantiateAsync(address, parent);
             asyncOperHandle.Completed += handleComplete;
             await asyncOperHandle.Task;
 
@@ -140,21 +132,18 @@ namespace Engine.Core.Addressable
                 case AsyncOperationStatus.None:
                     break;
                 case AsyncOperationStatus.Succeeded:
-                {
-                    container?.Inject(asyncOperHandle.Result);
-
-                    if (typeof(T) == typeof(GameObject))
                     {
-                        return asyncOperHandle.Result as T;
-                    }
+                        if (typeof(T) == typeof(GameObject))
+                        {
+                            return asyncOperHandle.Result as T;
+                        }
 
-                    return asyncOperHandle.Result.GetComponent<T>();
-                }
-                    break;
+                        return asyncOperHandle.Result.GetComponent<T>();
+                    }
                 case AsyncOperationStatus.Failed:
-                {
-                    Debug.LogError(asyncOperHandle.OperationException.Message);
-                }
+                    {
+                        Debug.LogError(asyncOperHandle.OperationException.Message);
+                    }
                     break;
             }
 
