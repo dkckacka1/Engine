@@ -24,7 +24,7 @@ namespace Engine.Core.Addressable
         public UnityEngine.Object OriginObject;
     }
 
-    public class AddressableManager : SingletonMonoBehaviour<AddressableManager>
+    public class AddressableController
     {
         private readonly Dictionary<string, CacheData> _loadedAddressableDic = new();
         private readonly HashSet<string> _loadingHashSet = new();
@@ -32,12 +32,11 @@ namespace Engine.Core.Addressable
         private const string PERMANENT_TYPE_NAME = "Permanent";
         private const string SCENE_TYPE_NAME = "Scene";
 
-        protected override void Initialized()
+        public AddressableController()
         {
-            base.Initialized();
             SceneManager.sceneLoaded += OnSceneLoaded;
         }
-
+        
         public async Task<T> LoadAssetAsync<T>(string address, CachingType cachingType = CachingType.Scene, string customTypeName = "Custom") where T : UnityEngine.Object
         {
             if (_loadingHashSet.Contains(address))
