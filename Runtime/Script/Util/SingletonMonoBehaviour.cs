@@ -10,6 +10,10 @@ namespace Engine.Util
             {
                 if (_instance is null)
                 {
+                    var findSingletonObj = FindFirstObjectByType<T>();
+                    if (findSingletonObj)
+                        return findSingletonObj;
+                    
                     var newObject = new GameObject();
                     newObject.name = typeof(T).Name;
 
