@@ -11,6 +11,7 @@ using NUnit.Framework;
 using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
 
 namespace Engine.Core.Addressable
 {
@@ -43,12 +44,21 @@ namespace Engine.Core.Addressable
 
             if (_loadedAddressableDic.TryGetValue(address, out var cacheData))
             {
-                return cacheData.OriginObject as T;
+                if (IsComponentType<T>())
+                {
+                    return ((GameObject)cacheData.OriginObject).GetComponent<T>();
+                }
+                else
+                {
+                    return cacheData.OriginObject as T;
+                }
             }
 
             _loadingHashSet.Add(address);
-            cacheData = new CacheData();
-            cacheData.CachingType = cachingTypeName;
+            cacheData = new CacheData
+            {
+                CachingType = cachingTypeName
+            };
 
             if (IsComponentType<T>())
                 // Component 타입
@@ -63,6 +73,7 @@ namespace Engine.Core.Addressable
                         {
                             var result = asyncOperationHandle.Result;
 
+                            cacheData.OriginObject = result;
                             _loadedAddressableDic.Add(address, cacheData);
                             _loadingHashSet.Remove(address);
                             return result.GetComponent<T>();
@@ -145,8 +156,6 @@ namespace Engine.Core.Addressable
                 await LoadAssetAsync<T>(address, customTypeName);
             }
 
-            var data = _loadedAddressableDic[address];
-
             var asyncOperHandle = (parent == null) ? Addressables.InstantiateAsync(address) : Addressables.InstantiateAsync(address, parent);
             asyncOperHandle.Completed += handleComplete;
             await asyncOperHandle.Task;
@@ -174,7 +183,7 @@ namespace Engine.Core.Addressable
             return null;
         }
 
-        public async UniTask<SceneInstance> LoadSceneAsync(string sceneAddress, LoadSceneMode loadSceneMode)
+        public async Task<SceneInstance> LoadSceneAsync(string sceneAddress, LoadSceneMode loadSceneMode)
         {
             return await Addressables.LoadSceneAsync(sceneAddress, loadSceneMode, activateOnLoad: false);
         }
