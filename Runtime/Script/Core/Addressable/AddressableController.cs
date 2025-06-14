@@ -7,17 +7,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Engine.Util;
 using Cysharp.Threading.Tasks;
+using NUnit.Framework;
+using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.SceneManagement;
 
 namespace Engine.Core.Addressable
 {
-    public enum CachingType
-    {
-        Permanent,  // 영구적 지속
-        Scene,      // 해당씬에서만 지속
-        Custom      // 커스텀
-    }
-
     public class CacheData
     {
         public string CachingType;
@@ -29,15 +24,15 @@ namespace Engine.Core.Addressable
         private readonly Dictionary<string, CacheData> _loadedAddressableDic = new();
         private readonly HashSet<string> _loadingHashSet = new();
 
-        private const string PERMANENT_TYPE_NAME = "Permanent";
-        private const string SCENE_TYPE_NAME = "Scene";
+        public const string PermanentTypeName = "Permanent"; // 영구적 지속
+        public const string SceneTypeName = "Scene"; // 해당씬에서만 지속
 
         public AddressableController()
         {
             SceneManager.sceneLoaded += OnSceneLoaded;
         }
         
-        public async Task<T> LoadAssetAsync<T>(string address, CachingType cachingType = CachingType.Scene, string customTypeName = "Custom") where T : UnityEngine.Object
+        public async Task<T> LoadAssetAsync<T>(string address, string cachingTypeName = SceneTypeName) where T : UnityEngine.Object
         {
             if (_loadingHashSet.Contains(address))
                 // 동시에 여러개의 로드 호출이 있을 경우 대기
@@ -52,7 +47,7 @@ namespace Engine.Core.Addressable
 
             _loadingHashSet.Add(address);
             cacheData = new CacheData();
-            cacheData.CachingType = GetCachingTypeName(cachingType);
+            cacheData.CachingType = cachingTypeName;
 
             if (IsComponentType<T>())
                 // Component 타입
@@ -106,18 +101,47 @@ namespace Engine.Core.Addressable
 
             return null;
         }
+        
+        public async Task<List<T>> LoadAssetsLabelAsync<T>(string labelName, string customTypeName = SceneTypeName)
+            where T : UnityEngine.Object
+        {
+            var locateList = await LoadAssetLabelLocationList(labelName);
+            var resultList = new List<T>();
 
+            foreach (var locate in locateList)
+            {
+                var loadAsset = await LoadAssetAsync<T>(locate.InternalId);
+            }
+
+            return resultList;
+        }
+        
+        public async Task<IList<IResourceLocation>> LoadAssetLabelLocationList(string labelName)
+        {
+            AssetLabelReference assetLabel = new AssetLabelReference
+            {
+                labelString = labelName
+            };
+
+            if (assetLabel.RuntimeKeyIsValid() is false)
+            {
+                throw new Exception($"{labelName} Invalid Name");
+            }
+
+            return await Addressables.LoadResourceLocationsAsync(labelName);
+        }
+
+        
         public async Task<T> InstantiateObject<T>(
             string address,
             Transform parent = null,
-            CachingType cachingType = CachingType.Scene,
-            string customTypeName = "Custom",
+            string customTypeName = SceneTypeName,
             Action<AsyncOperationHandle<GameObject>> handleComplete = null
             ) where T : UnityEngine.Object
         {
             if (_loadedAddressableDic.ContainsKey(address) is false)
             {
-                await LoadAssetAsync<T>(address, cachingType, customTypeName);
+                await LoadAssetAsync<T>(address, customTypeName);
             }
 
             var data = _loadedAddressableDic[address];
@@ -149,10 +173,8 @@ namespace Engine.Core.Addressable
             return null;
         }
 
-        public void ReleaseAll(CachingType cachingType, string customName = "Custom")
+        public void ReleaseAll(string cachingTypeName)
         {
-            var cachingTypeName = GetCachingTypeName(cachingType, customName);
-
             foreach (var loadedObject in _loadedAddressableDic
                          .Where(loadedObject => loadedObject.Value.CachingType == cachingTypeName))
             {
@@ -172,20 +194,7 @@ namespace Engine.Core.Addressable
         
         private void OnSceneLoaded(Scene arg0, LoadSceneMode arg1)
         {
-            ReleaseAll(CachingType.Scene);
-        }
-
-        private static string GetCachingTypeName(CachingType cachingType, string customName = "Custom")
-        {
-            var result = cachingType switch
-            {
-                CachingType.Permanent => PERMANENT_TYPE_NAME,
-                CachingType.Scene => SCENE_TYPE_NAME,
-                CachingType.Custom => customName,
-                _ => ""
-            };
-
-            return result;
+            ReleaseAll(SceneTypeName);
         }
 
         private static bool IsComponentType<T>()
