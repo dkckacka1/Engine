@@ -9,6 +9,7 @@ using Engine.Util;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine.ResourceManagement.ResourceLocations;
+using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
 
 namespace Engine.Core.Addressable
@@ -173,8 +174,16 @@ namespace Engine.Core.Addressable
             return null;
         }
 
+        public async UniTask<SceneInstance> LoadSceneAsync(string sceneAddress, LoadSceneMode loadSceneMode)
+        {
+            return await Addressables.LoadSceneAsync(sceneAddress, loadSceneMode, activateOnLoad: false);
+        }
+
         public void ReleaseAll(string cachingTypeName)
         {
+            if (_loadedAddressableDic.ContainsKey(cachingTypeName) is false)
+                return;
+            
             foreach (var loadedObject in _loadedAddressableDic
                          .Where(loadedObject => loadedObject.Value.CachingType == cachingTypeName))
             {
