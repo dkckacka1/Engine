@@ -34,7 +34,7 @@ namespace Engine.Core.Addressable
             SceneManager.sceneLoaded += OnSceneLoaded;
         }
         
-        public async Task<T> LoadAssetAsync<T>(string address, string cachingTypeName = SceneTypeName) where T : UnityEngine.Object
+        public async Task<T> LoadAssetAsync<T>(string address, string cachingTypeName = PermanentTypeName) where T : UnityEngine.Object
         {
             if (_loadingHashSet.Contains(address))
                 // 동시에 여러개의 로드 호출이 있을 경우 대기
@@ -114,7 +114,7 @@ namespace Engine.Core.Addressable
             return null;
         }
         
-        public async Task<List<T>> LoadAssetsLabelAsync<T>(string labelName, string customTypeName = SceneTypeName)
+        public async Task<List<T>> LoadAssetsLabelAsync<T>(string labelName, string customTypeName = PermanentTypeName)
             where T : UnityEngine.Object
         {
             var locateList = await LoadAssetLabelLocationList(labelName);
@@ -147,7 +147,7 @@ namespace Engine.Core.Addressable
         public async Task<T> InstantiateObject<T>(
             string address,
             Transform parent = null,
-            string customTypeName = SceneTypeName
+            string customTypeName = PermanentTypeName
             ) where T : Object
         {
             if (_loadedAddressableDic.TryGetValue(address, out var cacheData) is false)
