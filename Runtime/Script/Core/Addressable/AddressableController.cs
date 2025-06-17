@@ -18,7 +18,7 @@ namespace Engine.Core.Addressable
     public class CacheData
     {
         public string CachingType;
-        public UnityEngine.Object OriginObject;
+        public Object OriginObject;
     }
 
     public class AddressableController
@@ -147,40 +147,29 @@ namespace Engine.Core.Addressable
         public async Task<T> InstantiateObject<T>(
             string address,
             Transform parent = null,
-            string customTypeName = SceneTypeName,
-            Action<AsyncOperationHandle<GameObject>> handleComplete = null
-            ) where T : UnityEngine.Object
+            string customTypeName = SceneTypeName
+            ) where T : Object
         {
-            if (_loadedAddressableDic.ContainsKey(address) is false)
+            if (_loadedAddressableDic.TryGetValue(address, out var cacheData) is false)
             {
                 await LoadAssetAsync<T>(address, customTypeName);
+                cacheData = _loadedAddressableDic[address];
             }
 
-            var asyncOperHandle = (parent == null) ? Addressables.InstantiateAsync(address) : Addressables.InstantiateAsync(address, parent);
-            asyncOperHandle.Completed += handleComplete;
-            await asyncOperHandle.Task;
+            var originObject = cacheData.OriginObject;
+            var asyncOperHandle = (parent == null)
+                ? Object.InstantiateAsync(originObject)
+                : Object.InstantiateAsync(originObject, parent); 
+            await asyncOperHandle;
 
-            switch (asyncOperHandle.Status)
+            if (IsComponentType<T>())
             {
-                case AsyncOperationStatus.None:
-                    break;
-                case AsyncOperationStatus.Succeeded:
-                    {
-                        if (typeof(T) == typeof(GameObject))
-                        {
-                            return asyncOperHandle.Result as T;
-                        }
-
-                        return asyncOperHandle.Result.GetComponent<T>();
-                    }
-                case AsyncOperationStatus.Failed:
-                    {
-                        Debug.LogError(asyncOperHandle.OperationException.Message);
-                    }
-                    break;
+                return (asyncOperHandle.Result[0] as GameObject)?.GetComponent<T>();
             }
-
-            return null;
+            else
+            {
+                return asyncOperHandle.Result[0] as T;
+            }
         }
 
         public async Task<SceneInstance> LoadSceneAsync(string sceneAddress, LoadSceneMode loadSceneMode)
