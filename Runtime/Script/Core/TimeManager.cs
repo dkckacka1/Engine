@@ -3,6 +3,7 @@ using Engine.Util;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
 namespace Engine.Core.Time
 {
@@ -28,6 +29,13 @@ namespace Engine.Core.Time
 
         private const string DEFAULT_TIME_KEY = "Default";
         private const float DEFAULT_TIME_SCALE_FACTOR = 1f;
+
+        protected override void Initialized()
+        {
+            base.Initialized();
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
 
         public float GetTimeScaleFactor(string timeKey = DEFAULT_TIME_KEY)
         {
@@ -82,22 +90,22 @@ namespace Engine.Core.Time
             while (timer > 0)
             {
                 await UniTask.NextFrame();
-                if (_timeScaleDic[timeKey].TimerPause)
+                if (_timeScaleDic.TryGetValue(timeKey, out var timeValue) is false)
+                {
+                    break;
+                }
+                
+                if (timeValue.TimerPause)
                     continue;
                 
                 timerAction?.Invoke(timer);
                 timer -= GetDeltaTimeScale(timeKey);
             }
         }
-
-        private void ResetAllTimeScale()
+        
+        private void OnSceneLoaded(Scene arg0, LoadSceneMode arg1)
         {
-            foreach (var timeKey in _timeScaleDic.Keys)
-            {
-                SetTimeScaleFactor(timeKey, DEFAULT_TIME_SCALE_FACTOR);
-            }
+            _timeScaleDic.Clear();
         }
-
-
     }
 }
