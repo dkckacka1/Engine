@@ -122,7 +122,8 @@ namespace Engine.Core.Addressable
 
             foreach (var locate in locateList)
             {
-                var loadAsset = await LoadAssetAsync<T>(locate.InternalId);
+                var loadAsset = await LoadAssetAsync<T>(locate.PrimaryKey);
+                resultList.Add(loadAsset);
             }
 
             return resultList;
