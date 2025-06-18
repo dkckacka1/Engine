@@ -11,6 +11,22 @@ namespace Engine.Core.EventBus
 
         public T CurrentType { get; private set; } = default;
 
+        public bool IsSameCurrentType(T type)
+        {
+            return CurrentType.Equals(type);
+        }
+
+        public bool IsSameCurrentType(params T[] types)
+        {
+            foreach (var type in types)
+            {
+                if (CurrentType.Equals(type))
+                    return true;
+            }
+
+            return false;
+        }
+        
         public void ChangeEvent(T type)
         {
             CurrentType = type;
