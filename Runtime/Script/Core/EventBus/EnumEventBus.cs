@@ -9,7 +9,12 @@ namespace Engine.Core.EventBus
     {
         private readonly UnityEvent<T> _enumEvent = new();
 
-        public T CurrentType { get; private set; } = default;
+        public T CurrentType { get; private set; }
+        
+        public EnumEventBus(T defaultType)
+        {
+            CurrentType = defaultType;
+        }
 
         public bool IsSameCurrentType(T type)
         {
