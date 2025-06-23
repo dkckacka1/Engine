@@ -43,7 +43,7 @@ namespace Engine.Core.EventBus
             _enumEvent.AddListener(enumEvent.OnEnumChange);
         }
 
-        public void RemoveEvent(IEnumEvent<T> enumEvent)
+        public void UnPublishEvent(IEnumEvent<T> enumEvent)
         {
             _enumEvent.RemoveListener(enumEvent.OnEnumChange);
         }
