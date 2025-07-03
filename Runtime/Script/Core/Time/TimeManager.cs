@@ -89,7 +89,7 @@ namespace Engine.Core.Time
 
             while (timer > 0)
             {
-                await UniTask.NextFrame();
+                await UniTask.Yield();
                 if (_timeScaleDic.TryGetValue(timeKey, out var timeValue) is false)
                 {
                     break;
