@@ -1,3 +1,4 @@
+#if UNITASK_INSTALLED
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -211,3 +212,4 @@ namespace Engine.Core.Addressable
         }
     }
 }
+#endif

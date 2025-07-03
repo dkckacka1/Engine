@@ -1,9 +1,12 @@
+#if UNITASK_INSTALLED
 using Cysharp.Threading.Tasks;
 using Engine.Util;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
+
+
 
 namespace Engine.Core.Time
 {
@@ -109,3 +112,5 @@ namespace Engine.Core.Time
         }
     }
 }
+
+#endif
