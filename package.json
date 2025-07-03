@@ -1,8 +1,8 @@
 {
   "name": "com.kimhawon.engine",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "displayName": "Kimhawon Engine",
-  "description": "UniTask 사용 부문에 if 설정",
+  "description": "빌드 시 문제가 있는 행동 트리부문 임시 삭제",
   "unity": "2021.1",
   "dependencies": {
     "com.unity.addressables": "2.2.2"
