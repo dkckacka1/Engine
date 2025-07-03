@@ -1,8 +1,8 @@
 {
   "name": "com.kimhawon.engine",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "displayName": "Kimhawon Engine",
-  "description": "빌드 시 문제가 있는 행동 트리부문 임시 삭제",
+  "description": "에디터 코드 ifDefine 처리",
   "unity": "2021.1",
   "dependencies": {
     "com.unity.addressables": "2.2.2"

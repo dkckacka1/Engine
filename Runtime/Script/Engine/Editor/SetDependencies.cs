@@ -1,7 +1,7 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
 using System.IO;
-using System.Text;
 
 namespace Engine.EditorUtil
 {
@@ -61,3 +61,4 @@ namespace Engine.EditorUtil
         }
     }
 }
+#endif
