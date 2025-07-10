@@ -1,8 +1,8 @@
 {
   "name": "com.kimhawon.engine",
-  "version": "0.1.5",
+  "version": "0.1.51",
   "displayName": "Kimhawon Engine",
-  "description": "에디터 코드 ifDefine 처리",
+  "description": "콜렉션 유틸 메서드 추가",
   "unity": "2021.1",
   "dependencies": {
     "com.unity.addressables": "2.2.2"
