@@ -1,8 +1,8 @@
 {
   "name": "com.kimhawon.engine",
-  "version": "0.1.51",
+  "version": "0.1.5101",
   "displayName": "Kimhawon Engine",
-  "description": "콜렉션 유틸 메서드 추가",
+  "description": "콜렉션이 무한 루프 도는 버그 수정",
   "unity": "2021.1",
   "dependencies": {
     "com.unity.addressables": "2.2.2"

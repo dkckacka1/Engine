@@ -6,7 +6,7 @@ namespace Engine.Util.Extension
     {
         public static IEnumerable<T> ListLoop<T>(this IList<T> values)
         {
-            while (true)
+            while (values.Count > 0)
             {
                 foreach (var value in values)
                 {
