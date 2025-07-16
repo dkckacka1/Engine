@@ -1,3 +1,4 @@
+#if ADDRESSABLE_INSTALLED
 #if UNITASK_INSTALLED
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -6,9 +7,7 @@ using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
-using Engine.Util;
 using Cysharp.Threading.Tasks;
-using NUnit.Framework;
 using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
@@ -212,4 +211,5 @@ namespace Engine.Core.Addressable
         }
     }
 }
+#endif
 #endif

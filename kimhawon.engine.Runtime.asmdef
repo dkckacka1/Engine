@@ -23,6 +23,11 @@
             "name": "com.cysharp.unitask",
             "expression": "2.5.10",
             "define": "UNITASK_INSTALLED"
+        },
+        {
+            "name": "com.unity.addressables",
+            "expression": "2.2.0",
+            "define": "ADDRESSABLE_INSTALLED"
         }
     ],
     "noEngineReferences": false
