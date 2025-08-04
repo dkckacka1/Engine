@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gitDataList:
   - GitName: com.cysharp.unitask
+    GitVersion: 2.5.10
     GitURL: https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask

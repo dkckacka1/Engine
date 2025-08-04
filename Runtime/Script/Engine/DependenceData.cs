@@ -7,6 +7,7 @@ namespace Engine.EditorUtil
     public struct GitData
     {
         public string GitName;
+        public string GitVersion;
         public string GitURL;
     }
 

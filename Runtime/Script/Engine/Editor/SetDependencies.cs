@@ -2,61 +2,64 @@
 using UnityEngine;
 using UnityEditor;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace Engine.EditorUtil
 {
-    [InitializeOnLoad]
     public class SetDependencies : Editor
     {
-        private static readonly DependenceData dependenceData;
-
-        static SetDependencies()
+        public static void AddPackage(string name, string url)
         {
-            dependenceData = Resources.Load<DependenceData>("DependenceData");
+            var manifestPath = Path.Combine(Application.dataPath.Replace("Assets", string.Empty), "Packages/manifest.json");
 
-            if (dependenceData)
+            var manifestText = File.ReadAllText(manifestPath);
+            if (!manifestText.Contains(name))
             {
-                foreach (var dependence in dependenceData.gitDataList)
-                {
-                    Debug.Log($"CheckDependence : {dependence.GitName}");
-                    var checkUniTaskInstalled = CheckPackageInstalled(dependence.GitName);
-
-                    if (!checkUniTaskInstalled)
-                    {
-                        AddPackage(dependence.GitName, dependence.GitURL);
-                    }
-                    else
-                    {
-                        Debug.Log($"{dependence.GitName} is Loaded!");
-                    }
-                }
+                var modifiedText = manifestText.Insert(manifestText.IndexOf("dependencies") + 16, $"\n\t\"{name}\": \"{url}\",\n");
+                File.WriteAllText(manifestPath, modifiedText);
+                Debug.Log($"Added {name} to manifest.json");
+                UnityEditor.PackageManager.Client.Resolve();
             }
         }
 
-        private static void AddPackage(string name, string url)
+        public static void RemovePackage(string name)
         {
-            string manifestPath = Path.Combine(Application.dataPath.Replace("Assets", string.Empty), "Packages/manifest.json");
+            var manifestPath = Path.Combine(Application.dataPath.Replace("Assets", string.Empty), "Packages/manifest.json");
             if (!File.Exists(manifestPath))
             {
                 Debug.LogError($"manifest.json not found at '{manifestPath}'");
                 return;
             }
+            
+            var manifestText = File.ReadAllText(manifestPath);
 
-            string manifestText = File.ReadAllText(manifestPath);
-            if (!manifestText.Contains(name))
+            // "name": "url" 패턴 찾기 (뒤에 , 또는 줄바꿈이 있을 수 있음)
+            var pattern = $"\\s*\"{Regex.Escape(name)}\"\\s*:\\s*\"[^\"]*\",?\\s*\\n?";
+            var newManifestText = Regex.Replace(manifestText, pattern, string.Empty);
+
+            if (manifestText != newManifestText)
             {
-                Debug.Log($"{name} not found in manifest.json");
-                var modifiedText = manifestText.Insert(manifestText.IndexOf("dependencies") + 17, $"\t\"{name}\": \"{url}\",\n");
-                File.WriteAllText(manifestPath, modifiedText);
-                Debug.Log($"Added {name} to manifest.json");
+                File.WriteAllText(manifestPath, newManifestText);
+                Debug.Log($"Removed {name} from manifest.json");
+                UnityEditor.PackageManager.Client.Resolve();
             }
-            UnityEditor.PackageManager.Client.Resolve();
+            else
+            {
+                Debug.LogWarning($"{name} not found in manifest.json");
+            }
         }
 
-        private static bool CheckPackageInstalled(string packageName)
+        public static bool CheckPackageInstalled(string packageName, out string manifestText)
         {
-            string manifestPath = Path.Combine(Application.dataPath.Replace("Assets", string.Empty), "Packages/manifest.json");
-            string manifestText = File.ReadAllText(manifestPath);
+            var manifestPath = Path.Combine(Application.dataPath.Replace("Assets", string.Empty), "Packages/manifest.json");
+            if (!File.Exists(manifestPath))
+            {
+                Debug.LogError($"manifest.json not found at '{manifestPath}'");
+                manifestText = string.Empty;
+                return false;
+            }
+            
+            manifestText = File.ReadAllText(manifestPath);
             return manifestText.Contains(packageName);
         }
     }
