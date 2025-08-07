@@ -33,6 +33,16 @@ namespace Engine.Core.Addressable
         {
             SceneManager.sceneLoaded += OnSceneLoaded;
         }
+
+        public async UniTaskVoid DownLoadBundle(string labelString)
+        {
+            var downloadSize = await Addressables.GetDownloadSizeAsync(labelString);
+
+            if (downloadSize > 0)
+            {
+                await Addressables.DownloadDependenciesAsync(labelString);
+            }
+        }
         
         public async Task<T> LoadAssetAsync<T>(string address, string cachingTypeName = PermanentTypeName) where T : UnityEngine.Object
         {
@@ -115,7 +125,7 @@ namespace Engine.Core.Addressable
         }
         
         public async Task<List<T>> LoadAssetsLabelAsync<T>(string labelName, string customTypeName = PermanentTypeName)
-            where T : UnityEngine.Object
+            where T : Object
         {
             var locateList = await LoadAssetLabelLocationList(labelName);
             var resultList = new List<T>();
