@@ -63,22 +63,24 @@ public class SetDependenciesEditorWindow : EditorWindow
 
     private void SetData(VisualElement elementTree, GitData dependency)
     {
+        var packageLabel = elementTree.Q<Label>("Package");
         var packageNameLabel = elementTree.Q<Label>("PackageName");
         var packageVersionLabel = elementTree.Q<Label>("PackageVersion");
         var packageAddressLabel = elementTree.Q<Label>("PackageAddress");
         
-        packageNameLabel.text = dependency.GitName;
-        packageVersionLabel.text = dependency.GitVersion;
-        packageAddressLabel.text = dependency.GitURL;
+        packageLabel.text = dependency.name;
+        packageNameLabel.text = dependency.gitName;
+        packageVersionLabel.text = dependency.gitVersion;
+        packageAddressLabel.text = dependency.gitURL;
         
-        var isInstalled = SetDependencies.CheckPackageInstalled(dependency.GitURL, out var manifestText);
+        var isInstalled = SetDependencies.CheckPackageInstalled(dependency.gitURL, out var manifestText);
         
         var addPackageButton = elementTree.Q<Button>("AddPackageButton");
         addPackageButton.SetEnabled(!isInstalled);
         
         addPackageButton.clicked += () =>
         {
-            SetDependencies.AddPackage(dependency.GitName, dependency.GitURL + $"#{dependency.GitVersion}");
+            SetDependencies.AddPackage(dependency.gitName, dependency.gitURL + $"#{dependency.gitVersion}");
             Refresh();
         };
         
@@ -87,7 +89,7 @@ public class SetDependenciesEditorWindow : EditorWindow
         
         removePackageButton.clicked += () =>
         {
-            SetDependencies.RemovePackage(dependency.GitName);
+            SetDependencies.RemovePackage(dependency.gitName);
             Refresh();
         };
     }

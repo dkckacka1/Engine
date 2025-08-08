@@ -3,6 +3,6 @@
         <engine:VisualElement name="TopBar" style="flex-grow: 1; flex-direction: row; transform-origin: center; min-height: 20px; max-height: 30px; height: 30px; align-items: center; justify-content: space-between;">
             <engine:Button text="Open Manifest File" name="ShowManifestButton" style="width: 200px; white-space: nowrap; max-width: 200px;" />
         </engine:VisualElement>
-        <engine:ScrollView name="ElementScrollView" />
+        <engine:ScrollView name="ElementScrollView" horizontal-scroller-visibility="Auto" vertical-scroller-visibility="Auto" vertical-page-size="1" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 27px; padding-right: 27px; padding-bottom: 27px; padding-left: 27px;" />
     </engine:VisualElement>
 </engine:UXML>
