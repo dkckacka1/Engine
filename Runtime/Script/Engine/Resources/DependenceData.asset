@@ -13,6 +13,19 @@ MonoBehaviour:
   m_Name: DependenceData
   m_EditorClassIdentifier: 
   gitDataList:
-  - GitName: com.cysharp.unitask
-    GitVersion: 2.5.10
-    GitURL: https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask
+  - name: UniTask
+    gitName: com.cysharp.unitask
+    gitVersion: 2.5.10
+    gitURL: https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask
+  - name: VContainer
+    gitName: jp.hadashikick.vcontainer
+    gitVersion: 1.17.0
+    gitURL: https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer
+  - name: NuGetForUnity
+    gitName: com.github-glitchenzo.nugetforunity
+    gitVersion: v4.5.0
+    gitURL: https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity
+  - name: R3
+    gitName: com.cysharp.r3
+    gitVersion: 1.3.0
+    gitURL: https://github.com/Cysharp/R3.git?path=src/R3.Unity/Assets/R3.Unity
